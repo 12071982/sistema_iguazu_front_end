@@ -1,0 +1,26 @@
+<div class="container mt-3" style="height: 400px;">
+  <table class="table table-bordered table-striped" id="tablaPaquetes">
+    <thead class="text-white" style="position: sticky; top: -1; text-align: center;">
+      <tr style="background-color: black;">
+        <th class="col-0">#</th>
+        <th hidden>ID RESERVA</th>
+        <th>CLIENTE</th>
+        <th>PERSONAS</th>
+        <th>OBSERVACIONES</th>
+        <th>PRECIO</th>
+        <th>FECHA RESERVA</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let d of reservas.slice().reverse() | paginate: { itemsPerPage: this.cantidadRegistros, currentPage: page }; let i = index">
+        <td>{{ (page - 1) * cantidadRegistros + i + 1 }}</td>
+        <td hidden>{{ d.iD_Reserva }}</td>
+        <td>{{ clienteTipoMap.get(d.iD_Cliente) }}</td>
+        <td>{{ d.numero_Personas }}</td>
+        <td>{{ d.observaciones }}</td>
+        <td>{{ d.precio_Total }}</td>
+        <td>{{ d.fecha_Reserva }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

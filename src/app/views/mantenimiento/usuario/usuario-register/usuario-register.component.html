@@ -1,0 +1,69 @@
+<form [formGroup]="myForm" class="formulario-modal">  
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group">
+                <label hidden for=""><strong>ID Usuario</strong></label>
+                <input hidden type="number" class="form-control" formControlName="iD_Usuario" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Nombres</strong></label>
+                <input type="text" class="form-control" formControlName="nombre" placeholder="Ingrese Nombres">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Apellidos</strong></label>
+                <input type="text" class="form-control" formControlName="apellido" placeholder="Ingrese Apellidos">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Correo</strong></label>
+                <input type="text" class="form-control" formControlName="correo_Electronico" placeholder="Ingrese su correo">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Contraseña</strong></label>
+                <input type="text" class="form-control" formControlName="password" placeholder="Ingrese su contraseña ">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Rol</strong></label>
+                <select class="form-select" name="rol" formControlName="rol">
+                    <option value="" disabled selected hidden>Seleccione su Rol</option>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Empleado">Empleado</option>
+                </select>
+            </div>            
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>Estado</strong></label>
+                <input type="text" class="form-control" name="estatus" formControlName="estatus" placeholder="Ingrese su Estado">
+            </div>
+        </div>
+    </div>
+   
+    <div class="row mt-4">
+        <div class="col-12 ">
+            <button (click)="save()" class="btn btn-primary btn-sm float-end mr-2 ml-2"> <i class="fas fa-save"></i> Guardar</button>
+            <button (click)="closeModal(false)" class="btn btn-danger btn-sm float-end mr-2 ml-2"> <i class="fas fa-ban"></i> Cancelar</button>
+        </div>
+    </div>
+</form>

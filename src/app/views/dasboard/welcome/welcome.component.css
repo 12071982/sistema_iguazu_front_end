@@ -1,0 +1,60 @@
+.container-img {
+    display: flex;  /* Activa Flexbox, que por defecto es horizontal */
+    height: 500px;  /* Altura fija para todas las imágenes */
+    width: 100%;    /* Asume el ancho total de la pantalla */
+}
+  
+.container-img img {
+flex-grow: 1;   /* Permite que cada imagen crezca para llenar el espacio disponible */
+object-fit: cover; /* Asegura que las imágenes cubran completamente su espacio sin deformarse */
+width: 50%;   /* Ajusta automáticamente el ancho para mantener la relación de aspecto */
+}
+  
+.logo{
+  width: auto;
+  height: 100px;
+}
+
+/* Reloj */
+.clock-container {
+    position: fixed;
+    top: 6px;
+    right: 20px;
+    width: 240px;
+    height: 80px;
+    background: linear-gradient(to top, #212529, #021b79);
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    align-items: center; /* Asegura centrado vertical */
+    justify-content: center; /* Asegura centrado horizontal */
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px #ccc;
+    animation: clock-animation 1s ease-in-out infinite;
+    padding: 0; /* Asegura que no haya padding interfiriendo con la alineación */
+    margin: 0; /* Asegura que no haya márgenes interfiriendo */
+}
+
+#clock {
+    font-size: 15px;
+    display: flex;
+    align-items: center; /* Asegura centrado vertical dentro del div #clock */
+    justify-content: center; /* Asegura centrado horizontal */
+    width: 100%; /* Asegura que ocupe todo el ancho del contenedor padre */
+}
+
+
+
+/* @keyframes clock-animation {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+} */

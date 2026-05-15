@@ -1,0 +1,112 @@
+<div class="container mt-2">
+  <h5 style="margin-right: 50px; text-align: center;">CLIENTES</h5>
+  <div class="input-group" style="display: flex">
+    <div class = "input-group-text bg-white">
+      <i class="fas fa-search"></i>
+    </div>
+    <input type="text" class="form-control" name="filtro" placeholder="Buscar cliente" [(ngModel)]="filtro" > 
+  </div>
+</div>
+<div class="container mt-3" style="overflow-y: scroll; height: 400px;">
+    <table class="table table-bordered table-striped">
+      <thead class="bg-dark text-white" style="position: sticky; top: -1;">              
+        <tr style="background-color: black;"> <!--#198754-->
+          <th class="col-0">#</th>
+          <th class="col-0" hidden>ID CLIENTE</th>
+          <th class="col-0" hidden>USUARIO</th>
+          <th class="col-3">NOMBRES</th>
+          <th class="col-3">APELLIDOS</th>
+          <th class="col-3">CORREO</th>
+          <th class="col-2">TELÉFONO</th>  
+          <th class="col-3">DIRECCION</th>
+          <th class="col-1">NACIMIENTO</th>
+          <th class="col-2">NACIONALIDAD</th>
+          <th class="col-3">PASAPORTE</th>
+          <th class="col-3">FRECUENCIA VIAJERO</th>
+          <th class="col-1" style="text-align: center;">
+            <button
+              (click)="crearRegistro(template)"
+              class="btn btn-primary btn-sm"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of clientes.slice().reverse() | filtroCliente:filtro | paginate: { itemsPerPage: cantidadRegistros, currentPage: page }, let i=index" style="height: 4px;">
+          <td>{{ (page - 1) * cantidadRegistros + i + 1 }}</td>
+          <td hidden>{{ d.iD_Cliente}} </td>
+          <td hidden>{{ d.iD_Usuario }}</td>
+          <td>{{ d.nombre }}</td>
+          <td>{{ d.apellido }}</td>  
+          <td>{{ d.correo }}</td>
+          <td>{{ d.telefono }}</td>
+          <td>{{ d.direccion }}</td>
+          <td>{{ d.fecha_Nacimiento }}</td>
+          <td>{{ d.nacionalidad }}</td>
+          <td>{{ d.pasaporte }}</td>
+          <td>{{ d.frecuencia_Viajero }}</td>        
+          <td style="display: flex;">
+            <!-- Contenedor del primer botón -->
+            <div style="margin-right: 5px;">
+              <!-- Inicio del botón de edición -->
+              <button style="width: 25px; display: flex; flex-direction: column; align-items: center;" class="btn btn-sm btn-success" (click)="editarRegistro(d, template)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <!-- Fin del botón de edición -->
+            </div>
+            <!-- Fin del primer contenedor -->
+            <!-- Contenedor del segundo botón -->
+            <div>
+              <button (click)="modalDelete(d)" style="width: 25px; display: flex; flex-direction: column; align-items: center;" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <!-- Fin del segundo contenedor -->
+          </td>
+        </tr>
+      </tbody>
+      
+      
+               
+    </table>
+  </div>
+  
+  <ng-template #template>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">
+        {{ tituloModal }}
+      </h4>
+      <button
+        type="button"
+        class="btn-close close pull-right"
+        aria-label="Close"
+        (click)="modalRef?.hide()"
+      >
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!--
+      [] ==> variable de entrada
+      () ==> variable de salida
+      -->
+      <app-clientes-register [clientes]="clientesSelected" (closeModalEmmit)="recibeCloseModal($event)">
+      </app-clientes-register>
+    </div>
+  </ng-template>
+  <pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="siguiente"  style="position: fixed; bottom: 0;">
+</pagination-controls>
+
+<!-- ... -->
+<div style="position: fixed; bottom: 20px; right: 20px;">
+  <label for="cantidadRegistros" style="padding-right: 5px;">Mostrar registros:</label>
+  <select id="cantidadRegistros" [(ngModel)]="cantidadRegistros" (change)="onRegistrosChange()" style="padding-right: 5px;">
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
+<!-- ... -->

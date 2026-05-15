@@ -1,0 +1,70 @@
+hr {
+  height: 3px;
+  background-color: black;
+}
+
+.boleto {
+  border-radius: 9px;
+  margin: 0 auto;
+  border-width: 1.7px;
+  border-style: solid;
+  width: 45%;
+  border-color: rgb(6, 6, 6);
+  padding: 11px;
+}
+
+table {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 12px; /* Reducir el tamaño de la fuente */
+}
+
+th, td {
+  word-wrap: break-word;
+  padding: 1px; /* Reducir el relleno de las celdas */
+  text-align: center;
+}
+
+thead th {
+  background-color: rgb(5, 5, 5);
+  color: aliceblue;
+}
+
+tr:nth-of-type(odd) {
+  background-color: #e6e6e6;
+}
+
+.boleto2 {
+  text-align: center;
+}
+
+.header {
+  text-align: center;
+}
+
+#total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  padding: 0 1rem;
+}
+
+#totaltext {
+  width: 60%;
+  margin: 0;
+  padding: 0;
+}
+
+#cajero {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.no-padding {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}

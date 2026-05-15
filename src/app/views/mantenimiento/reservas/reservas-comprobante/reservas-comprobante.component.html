@@ -1,0 +1,79 @@
+<link rel="stylesheet" href="./reservas-comprobante.component.css" />
+
+<div id="app2" class="boleto">
+  <div class="boleto2">
+    <img src="./assets/imagenes/logo.png" alt="logoLastmen" width="150px" />
+  </div>
+  <div class="header">
+    <p><strong>TOUR EXPRESS IGUAZU E.I.R.L</strong></p>
+    <p style="margin-bottom: 0;">Agencia de viajes y Turismo, Huancayo, Peru</p>
+    <p style="margin-bottom: 0;">Tel: 930 164 767</p>
+    <p>RUC: 20605995480</p>
+    <h6>BOLETA DE RESERVA ELECTRONICA</h6>
+    <h6 style="text-align: left;">NRO OPERACION: {{ nroOperacion }}</h6>
+  </div>
+
+  <hr />
+  <div class="cliente" style="display: flex; justify-content: space-between;">
+    <div style="width: 45%;">
+      <h6>Cliente:</h6>
+      <p>{{ cliente.nombre }} {{ cliente.apellido }}</p>
+    </div>
+    <div style="width: 45%;">
+      <h6>Teléfono:</h6>
+      <p>{{ cliente.telefono }}</p>
+    </div>
+  </div>
+  <div class="cliente" style="display: flex; justify-content: space-between;">
+    <div style="width: 45%;">
+      <h6>Fecha Reserva:</h6>
+      <p>{{ reserva.fecha_Reserva }}</p>
+    </div>
+    <div style="width: 45%;">
+      <h6>Personas:</h6>
+      <p>{{ reserva.numero_Personas }}</p>
+    </div>
+  </div>
+
+  <hr />
+
+  <div class="paquete" *ngIf="paquete">
+    <h6 style="text-align: center; color: rgb(69, 71, 69);">PAQUETE</h6>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Destino</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Precio Base</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ paquete.nombre }}</td>
+          <td>{{ getDestinoNombre(paquete.iD_Destino) }}</td>
+          <td>{{ paquete.fecha_Inicio }}</td>
+          <td>{{ paquete.fecha_Fin }}</td>
+          <td>{{ paquete.precio_Base }} {{ getMonedaNombre(paquete.iD_Destino) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <hr />
+  <p class="no-padding">Inclusiones: {{ paquete?.inclusiones }}</p>
+  <p class="no-padding">Exclusiones: {{ paquete?.exclusiones }}</p>
+  <p class="no-padding">Observaciones: {{ reserva.observaciones }}</p>
+  <br>
+  <div id="total">
+    <p id="totaltext">TOTAL</p>
+    <p> {{ reserva.precio_Total | number:'1.2-2' }} {{ getMonedaNombre(paquete?.iD_Destino) }}</p>
+  </div>
+  <hr />
+</div>
+
+<div style="text-align: center; padding-top: 1rem">
+  <a (click)="PrintElem()" class="btn btn-success text-center" id="btn_reservar">
+    <i class="fas fa-print"></i> Imprimir
+  </a>
+</div>

@@ -1,0 +1,99 @@
+<form [formGroup]="myForm" class="formulario-modal">
+    <div class="row">
+        <div class="col-12">
+            <div class="form-group">
+                <label hidden for=""><strong>ID DESTINO</strong></label>
+                <input hidden type="number" class="form-control" formControlName="iD_Destino" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>NOMBRE DESTINO</strong></label>
+                <input type="text" class="form-control" formControlName="nombre" placeholder="Ingrese Nombre Destino">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>PAIS</strong></label>
+                <input type="text" class="form-control" formControlName="pais" placeholder="Ingrese Pais">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>CIUDAD</strong></label>
+                <input type="text" class="form-control" formControlName="ciudad" placeholder="Ingrese Ciudad">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for=""><strong>ATRACCIONES</strong></label>
+                <input type="text" class="form-control" formControlName="atracciones" placeholder="Ingrese Atracciones">
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <label for=""><strong>CLIMA</strong></label>
+            <select class="form-select" name="clima" formControlName="clima">
+                <option value="" disabled selected hidden>Seleccione Clima</option>
+                <option value="Tropical">Tropical</option>
+                <option value="Templado">Templado</option>
+                <option value="Seco">Seco</option>
+                <option value="Cálido">Cálido</option>
+                <option value="Frío">Frío</option>
+                <option value="Húmedo">Húmedo</option>
+                <option value="Montañoso">Montañoso</option>
+                <option value="Desértico">Desértico</option>
+                <option value="Oceánico">Oceánico</option>
+                <option value="Subtropical">Subtropical</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <!-- <div class="form-group">
+                <label for=""><strong>IDIOMA</strong></label>
+                <input type="text" class="form-control" formControlName="idioma" placeholder="Ingrese Idioma">
+            </div> -->
+            <label for=""><strong>IDIOMA</strong></label>
+            <select class="form-select" name="idioma" formControlName="idioma">
+                <option value="" disabled selected hidden>Seleccione Idioma</option>
+                <option value="Ingles">Ingles</option>
+                <option value="Español">Español</option>
+            </select>
+
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <!-- <div class="form-group">
+                <label for=""><strong>MONEDA</strong></label>
+                <input type="text" class="form-control" formControlName="moneda" placeholder="Ingrese Moneda">
+            </div> -->
+            <label for=""><strong>MONEDA</strong></label>
+            <select class="form-select" name="moneda" formControlName="moneda">
+                <option value="" disabled selected hidden>Seleccione Moneda</option>
+                <option value="Sol">Sol</option>
+                <option value="Dolar">Dolar</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12 ">
+            <button (click)="save()" class="btn btn-primary btn-sm float-end mr-2 ml-2"> <i class="fas fa-save"></i>
+                Guardar</button>
+            <button (click)="closeModal(false)" class="btn btn-danger btn-sm float-end mr-2 ml-2"> <i
+                    class="fas fa-ban"></i> Cancelar</button>
+        </div>
+    </div>
+</form>

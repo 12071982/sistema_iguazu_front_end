@@ -1,0 +1,39 @@
+<div class="row">
+  <div class="col-12">
+    <div class="card text-dark bg-light mb-3" >
+      <div class="card-header">CREAR / EDITAR ROL</div>
+      <div class="card-body">
+        
+        <div class="row">
+            <div class="col-4">
+                <label for="">Descripción del rol</label>
+                <!-- directiva NGMODEL -->
+                <input type="text" class="form-control" [(ngModel)]="role.description">
+            </div>
+            <div class="col-4">
+                <label for="">Funciones</label>
+                <input type="text" class="form-control" [(ngModel)]="role.function">
+            </div>
+            <div class="col-4">
+                <label for="">Estado</label>
+                <select class="form-select" [(ngModel)]="role.id_status">
+                    <option value="null">Escoja una opción</option>
+                    <option value="1">Activo</option>
+                    <option value="2">Inactivo</option>
+                </select>
+            </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+    <button (click)="saveRole()" class="btn btn-primary btn-lg">
+        <i class="fas fa-save"></i> GUARDAR
+      </button>
+  <button (click)="closeModal(false)" class="btn btn-danger btn-lg">
+    CANCELAR
+  </button>
+</div>

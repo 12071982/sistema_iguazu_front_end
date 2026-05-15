@@ -1,0 +1,361 @@
+<link rel="stylesheet" href="./reservas-register.component.css" />
+<div class="container-fluid mt-2">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="form-group">
+        <h5 class="text-center">DETALLES DE LA RESERVA</h5>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <form method="post" name="form_new_cliente_reserva" id="form_new_cliente_reserva">
+            <input type="hidden" id="iD_Cliente" value="1" name="iD_Cliente" required />
+            <div class="row">
+              <div style="display: grid">
+                <input (click)="openListCliente(TemplateCliente)" type="button" class="btn btn-primary btn-sm"
+                  value="Seleccione Cliente" />
+              </div>
+              <div class="col-lg-4">
+                <div class="form-group">
+                  <label>Nombre Completo</label>
+                  <input type="text" name="nom_cliente" id="nom_cliente" class="form-control" [(ngModel)]="
+                      clienteSelect.nombre + ' ' + clienteSelect.apellido
+                    " required disabled />
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <div class="form-group">
+                  <label>Teléfono</label>
+                  <input type="number" name="tel_cliente" id="tel_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.telefono" required disabled />
+                </div>
+              </div>
+              <div class="col-lg-4">
+                <div class="form-group">
+                  <label>Dirección</label>
+                  <input type="text" name="dir_cliente" id="dir_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.direccion" required disabled />
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <div class="form-group">
+                  <label>Nacionalidad</label>
+                  <input type="text" name="nacio_cliente" id="nacio_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.nacionalidad" required disabled />
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <div class="form-group">
+                  <label>Pasaporte</label>
+                  <input type="text" name="pasa_cliente" id="pasa_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.pasaporte" required disabled />
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <div class="form-group">
+                  <label>Frecuencia Viajero</label>
+                  <input type="text" name="frec_viaj_cliente" id="frec_viaj_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.frecuencia_Viajero" required disabled />
+                </div>
+              </div>
+              <div class="col-lg-2">
+                <div class="form-group">
+                  <label>Fecha Nacimiento</label>
+                  <input type="text" name="fec_nac_cliente" id="fec_nac_cliente" class="form-control"
+                    [(ngModel)]="clienteSelect.fecha_Nacimiento" required disabled />
+                </div>
+              </div>
+
+
+              <!-- <div id="div_registro_cliente" style="display: none">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+              </div> -->
+            </div>
+          </form>
+        </div>
+      </div>
+      <h5 class="text-center" style="padding: 15px;">DATOS DE LA RESERVA</h5>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="form-group">
+            <Table class="table table-bordered">
+              <Th><label><i class="fas fa-user"></i> ATENDIDO POR:</label></Th>
+              <td style="align-items: center">
+                {{ usuario.nombre }} {{ usuario.apellido }}
+              </td>
+            </Table>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <div style="display: grid">
+          <input (click)="openListPaquete(TemplatePaquete)" type="button" class="btn btn-primary btn-sm float-end"
+            value="Seleccione paquete" />
+        </div>
+
+        <form [formGroup]="myForm">
+          <table class="table table-hover">
+            <thead class="bg-dark text-white">
+              <tr>
+                <th class="d-none">ID Pago</th>
+                <th hidden>ID Paquete</th>
+                <th>Paquete</th>
+                <th>Descripción</th>
+                <th>Duración</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Destino</th>
+                <th>Precio</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="detalle_reserva">
+              <ng-container formArrayName="DetalleReservas">
+                <ng-container *ngFor="let d of DetalleReservas.controls; let i = index">
+                  <tr [formGroupName]="i">
+                    <td class="d-none">
+                      <input readonly type="text" class="form-control" formControlName="iD_Pago" />
+                    </td>
+                    <td hidden class="d-none">
+                      <input readonly type="text" class="form-control" formControlName="iD_Paquete" />
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_nombre_paquete" />
+                    </td>
+                    <td>
+                      <textarea readonly style="word-wrap: break-word; height: 50; width:300; resize: none;"
+                        class="form-control" formControlName="html_descripcion_paquete"></textarea>
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_duracion_paquete" />
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_fecha_inicio_paquete" />
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_fecha_fin_paquete" />
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_destino_paquete" />
+                    </td>
+                    <td>
+                      <input readonly type="text" class="form-control" formControlName="html_moneda_monto" />
+                    </td>
+                    <td style="text-align: right;">
+                      <button (click)="removeElement(i)" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </ng-container>
+              </ng-container>
+            </tbody>
+
+            <tfoot id="detalle_totales">
+              <tr>
+                <th>
+                  <br>
+                  <br>
+                  <p>Observaciones:</p>
+                  <br>
+                  <p>Numero de Personas:</p>
+                  <!-- <p>
+                    Metodo de Pago
+                  </p> -->
+                </th>
+                <th>
+                  <p><textarea style="width: 300; height: 35; resize: none;" placeholder="Observaciones"
+                      formControlName="observaciones"></textarea></p>
+                  <div style="display: flex; gap: 10px; padding-top: 3;">
+                    <div style="display: flex; flex-direction: column;">
+                      <input style="width: 65;" type="number" placeholder="Personas" formControlName="numero_Personas"
+                        min="1" step="1" />
+                    </div>
+                    <!-- <div style="display: flex; flex-direction: column;">
+                      <label for="monto_persona">Costo x Persona</label>
+                    </div>
+                    <input style="width: 65;" type="number" placeholder="Monto" formControlName="monto"> -->
+                  </div>
+                  <!-- <div style="padding-top: 12;">
+                    <input style="width: 85;" type="text" min="1" placeholder="Efectivo/Tarjeta" formControlName="metodo_Pago">
+                  </div> -->
+                </th>
+
+                <th colspan="4">
+                  <br>
+                  <p class="text-end">Pagar</p>
+                  <p class="text-end" style="color:#DC3545;">Vuelto</p>
+                  <p class="text-end" style="color:#008037;">Precio Total</p>
+                </th>
+                <th colspan="3">
+                  <br>
+                  <p class="text-end">
+                    <input style="width:60;" min="0" class="pagar" type="number" formControlName="precio_Total"
+                      placeholder="Monto" (change)="calcularVuelto($event)">
+                    {{ nombre_moneda }}
+                  </p>
+                  <p class="text-end" style="color:#DC3545;">{{vuelto | number:'1.2-2'}} {{ nombre_moneda }}</p>
+                  <p class="text-end">{{ total_price | round }} {{ nombre_moneda }}</p>
+                </th>
+              </tr>
+            </tfoot>
+          </table>
+          <div style="text-align: center">
+            <div *ngIf="DetalleReservas.length > 0 && total_price > 0 && clienteSelect.iD_Cliente > 0">
+              <a (click)="realizarReserva(templatecomprobante)" class="btn btn-success text-center" id="btn_reservar">
+                <i class="fas fa-save"></i> Generar Reserva
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <a (click)="listReserva(templatelistareservas)" class="btn btn-warning text-center" id="btn_reservar"><i
+                class="fas fa-list"></i> Lista de Reservas</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- template lista clientes -->
+  <ng-template #TemplateCliente>
+    <div class="container mt-2">
+      <input (click)="modalRef?.hide()" type="button" class="btn btn-sm float-end" value="X" />
+      <h5 style="margin-right: 50px; text-align: center;">CLIENTES</h5>
+      <div class="input-group" style="display: flex">
+        <div class="input-group-text bg-white">
+          <i class="fas fa-search"></i>
+        </div>
+        <input type="text" class="form-control" name="filtro" placeholder="Buscar cliente" [(ngModel)]="filtro">
+      </div>
+    </div>
+    <div class="container mt-3" style="overflow-y: scroll; height: 400px;">
+      <table class="table table-bordered table-striped">
+        <thead class="bg-dark text-white" style="position: sticky; top: -1;">
+          <tr style="background-color: black;"> <!--#198754-->
+            <th class="col-0">#</th>
+            <th class="col-0" hidden>ID CLIENTE</th>
+            <th class="col-0" hidden>USUARIO</th>
+            <th class="col-3">NOMBRES</th>
+            <th class="col-3">APELLIDOS</th>
+            <th class="col-1">TELÉFONO</th>
+            <th class="col-1">DIRECCION</th>
+            <th class="col-0">NACIMIENTO</th>
+            <th class="col-1">NACIONALIDAD</th>
+            <th class="col-1">PASAPORTE</th>
+            <th class="col-1">FRECUENCIA VIAJERO</th>
+            <th class="col-0" style="text-align: center;">OPCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let d of clienteList | filtroClienteSelect: filtro | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <td>{{ (page - 1) * 10 + i + 1 }}</td>
+            <td hidden>{{ d.iD_Cliente }}</td>
+            <td hidden>{{ d.iD_Usuario }}</td>
+            <td>{{ d.nombre }}</td>
+            <td>{{ d.apellido }}</td>
+            <td>{{ d.telefono }}</td>
+            <td>{{ d.direccion }}</td>
+            <td>{{ d.fecha_Nacimiento }}</td>
+            <td>{{ d.nacionalidad }}</td>
+            <td>{{ d.pasaporte }}</td>
+            <td>{{ d.frecuencia_Viajero }}</td>
+
+            <td class="col-1" style="text-align: center;">
+              <button type="button" style="margin-left: 2px; margin-right: 2px;" class="btn btn-sm btn-primary"
+                (click)="onChangeCliente(d)">
+                <label for=""> seleccionar</label>
+              </button>
+
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="Siguiente"
+      style="padding-top: 15px;">
+    </pagination-controls>
+  </ng-template>
+
+  <!-- template lista paquetes -->
+  <ng-template #TemplatePaquete>
+    <div class="container mt-2">
+      <input (click)="modalRef?.hide()" type="button" class="btn btn-sm float-end" value="X" />
+      <h5 style="margin-right: 50px; text-align: center;">PAQUETES</h5>
+      <div class="input-group" style="display: flex">
+        <div class="input-group-text bg-white">
+          <i class="fas fa-search"></i>
+        </div>
+        <input type="text" class="form-control" name="filtroPaqueteSelect" placeholder="Buscar paquete"
+          [(ngModel)]="filtroPaquete">
+      </div>
+    </div>
+    <div class="container mt-3" style="overflow-y: scroll; height: 400px;">
+      <table class="table table-bordered table-striped">
+        <thead class="bg-dark text-white" style="position: sticky; top: -1;">
+          <tr style="background-color: black;"> <!--#198754-->
+            <th class="col-0">#</th>
+            <th class="d-none">Id paquete</th>
+            <th class="col-2">Nombre Paquete</th>
+            <th class="col-3">Descripción</th>
+            <th class="col-1">Duración</th>
+            <th class="col-1">Fecha Inicio</th>
+            <th class="col-1">Fecha Fin</th>
+            <th class="col-2">Destino</th>
+            <th class="col-3">Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let p of paquete | filtroPaqueteSelect: filtroPaquete | paginate: { itemsPerPage: 5, currentPage: page }; let i = index">
+            <td>
+              <input type="radio" name="paqueteSelect" (change)="onChangePaquete(p)" />
+            </td>
+            <td class="d-none">{{ p.iD_Paquete }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.descripcion }}</td>
+            <td>{{ p.duracion }}</td>
+            <td>{{ p.fecha_Inicio }}</td>
+            <td>{{ p.fecha_Fin }}</td>
+            <td>{{ destino_nombreTipoMap.get(p.iD_Destino) }}</td>
+            <td>{{ p.precio_Base }} {{ destino_monedaTipoMap.get(p.iD_Destino) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="Siguiente"
+      style="padding-top: 15px;">
+    </pagination-controls>
+  </ng-template>
+
+
+  <ng-template #templatecomprobante>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">
+        {{ tituloModal }}
+      </h4>
+      <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef?.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!--
+          [] ==> variable de entrada
+          () ==> variable de salida
+          -->
+      <app-reservas-comprobante [reserva]="miReserva"></app-reservas-comprobante>
+    </div>
+  </ng-template>
+
+  <ng-template #templatelistareservas>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">HISTORIAL RESERVAS REALIZADAS</h4>
+      <input (click)="modalRef?.hide()" type="button" class="btn btn-danger btn-sm float-end" value="X" />
+    </div>
+    <div class="modal-body">
+      <app-reservas-list>
+      </app-reservas-list>
+    </div>
+  </ng-template>
+</div>

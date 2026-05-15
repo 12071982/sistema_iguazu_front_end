@@ -1,0 +1,14 @@
+th, td {
+    vertical-align: middle;
+    font-size: 12px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+  
+button i {
+    font-size: 12px;
+}
+
+input.form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da; /* Puedes ajustar el color de borde según tus necesidades */
+}

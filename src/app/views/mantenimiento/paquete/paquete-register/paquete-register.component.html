@@ -1,0 +1,132 @@
+<!-- ✅ FORMULARIO DE PAQUETES TURÍSTICOS -->
+<form [formGroup]="myForm" class="formulario-modal">
+  <!-- 🔒 ID del paquete (oculto) -->
+  <input hidden type="number" formControlName="iD_Paquete" readonly />
+
+  <!-- 📍 DESTINO -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>DESTINO</strong></label>
+      <input type="text" class="form-control" placeholder="Escriba un destino" [formControl]="destinoCtrl"
+        (input)="seleccionarDestino(destinoCtrl.value)" list="listaDestinos" />
+      <datalist id="listaDestinos">
+        <option *ngFor="let d of destinosFiltrados$ | async" [value]="d.nombre">
+          {{ d.nombre }} - {{ d.ciudad }} - {{ d.pais }}
+        </option>
+      </datalist>
+      <div class="text-danger" *ngIf="warningShown && !myForm.get('iD_Destino')?.value">
+        El destino es obligatorio.
+      </div>
+    </div>
+  </div>
+
+  <!-- 🏷️ NOMBRE -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>NOMBRE DEL PAQUETE</strong></label>
+      <input type="text" class="form-control" formControlName="nombre" placeholder="Ingrese Nombre Paquete" />
+    </div>
+  </div>
+
+  <!-- 📄 DESCRIPCIÓN -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>DESCRIPCIÓN</strong></label>
+      <textarea rows="8" style="resize: none;" class="form-control" formControlName="descripcion"
+        placeholder="Ingrese descripción del paquete"></textarea>
+    </div>
+  </div>
+
+  <!-- 🕐 DURACIÓN -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>DURACIÓN</strong></label>
+      <select class="form-select" formControlName="duracion" (change)="onDuracionChange($event)">
+        <option value="">Seleccione duración</option>
+        <option value="1 día">1 día</option>
+        <option value="2 días">2 días</option>
+        <option value="3 días">3 días</option>
+        <option value="4 días">4 días</option>
+        <option value="Semana completa">Semana completa</option>
+        <option value="Fin de semana">Fin de semana</option>
+        <option value="Personalizado">Personalizado</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- ✍️ DURACIÓN PERSONALIZADA -->
+  <div class="row mt-2" *ngIf="mostrarCampoDuracionPersonalizada">
+    <div class="col-12">
+      <label><strong>Especifique duración personalizada</strong></label>
+      <input type="text" class="form-control" formControlName="duracionPersonalizada"
+        placeholder="Ej. 5 días / 4 noches" (input)="actualizarDuracionPersonalizada()" />
+    </div>
+  </div>
+
+  <!-- 💰 PRECIO BASE -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>PRECIO BASE</strong></label>
+      <input type="number" step="0.01" class="form-control" formControlName="precio_Base"
+        placeholder="Ingrese precio base del paquete" />
+    </div>
+  </div>
+
+  <!-- 🧾 TIPO -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>TIPO DE PAQUETE</strong></label>
+      <select class="form-select" formControlName="tipo">
+        <option value="">Seleccione tipo</option>
+        <option value="Económico">Económico</option>
+        <option value="Estándar">Estándar</option>
+        <option value="Premium">Premium</option>
+        <option value="Familiar">Familiar</option>
+        <option value="Romántico">Romántico</option>
+        <option value="Aventura">Aventura</option>
+        <option value="Cultural">Cultural</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 📅 FECHAS -->
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <label><strong>FECHA INICIO</strong></label>
+      <input type="date" class="form-control" formControlName="fecha_Inicio" />
+    </div>
+    <div class="col-md-6">
+      <label><strong>FECHA FIN</strong></label>
+      <input type="date" class="form-control" formControlName="fecha_Fin" />
+    </div>
+  </div>
+
+  <!-- ✅ INCLUSIONES -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>INCLUSIONES</strong></label>
+      <input type="text" class="form-control" formControlName="inclusiones" />
+    </div>
+  </div>
+
+  <!-- ❌ EXCLUSIONES -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <label><strong>EXCLUSIONES</strong></label>
+      <input type="text" class="form-control" formControlName="exclusiones" />
+    </div>
+  </div>
+
+  <!-- 📥 BOTONES -->
+  <div class="row mt-4">
+    <div class="col-12 text-end">
+      <button type="button" (click)="closeModal(false)" class="btn btn-danger btn-sm mx-2">
+        <i class="fas fa-ban"></i> Cancelar
+      </button>
+      <button type="button" (click)="save()" class="btn btn-primary btn-sm mx-2">
+        <i class="fas fa-save"></i> Guardar
+      </button>
+
+    </div>
+  </div>
+</form>

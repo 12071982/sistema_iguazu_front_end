@@ -1,0 +1,47 @@
+<h1 class="text-center">AQUI SE VAN A LISTAR LA LISTA DE ROLES</h1>
+<div class="container">
+  <!-- USO DE LA DIRECTIVA NGIF -->
+  <div class="table-responsive" *ngIf="showTable; else editTemplate">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Descripción</th>
+          <th>Función</th>
+          <th>Estado</th>
+          <th>
+                <button (click)="addRole()" class="btn btn-primary btn-sm"> <i class="fas fa-plus"></i> </button>  
+
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- DIRECTIVA DE ANGULAR ==> ngFor -->
+        <tr *ngFor="let d of roles">
+          <td>{{ d.id }}</td>
+          <td>{{ d.description }}</td>
+          <td>{{ d.function }}</td>
+          <td>{{ d.id_status == 1 ? "Activo" : "Inactivo" }}</td>
+          <td class="">
+            <button (click)="editRole(d)" class="btn btn-md btn-primary">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button (click)="deleteRole(d.id)" class="btn btn-md btn-danger">
+                <i class="fas fa-trash"></i>
+              </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- --- START SECCION TEMPLATE -->
+<ng-template #editTemplate>
+  <h1>AQUÍ SE PROCEDE A IMPLEMENTAR EL FORMULARIO DE EDICIÓN</h1>
+    <!-- aqui podemos realizar nuestro formulario de edición -->
+    <!-- para variable de entrada []  -->
+    <app-role-edit-register [role]="selectedRole" (_closeModalEmmiter)="recibeCloseModal($event)"></app-role-edit-register>
+    <!-- para variable de salida vamos a usar () -->
+</ng-template>
+<!-- --- END SECCION TEMPLATE -->

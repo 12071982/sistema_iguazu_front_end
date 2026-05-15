@@ -1,0 +1,40 @@
+<section class="body">
+  <div class="container">
+    <div class="login-box">
+      <div class="row">
+        <div class="col-sm-6" style="width: 100%;">
+          <div class="logo">
+            <span class="logo-font">Iguazu</span>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6" style="background-color: rgba(11, 53, 102, 0.856); width: 350; border-radius: 10%;">
+          <br>
+          <h3 class="header-title">INICIO DE SESION</h3>
+          <form  [formGroup]="myForm" class="login-form">
+            <div class="form-group">
+              <input type="text" formControlName="usuario" class="form-control" placeholder="Nombre de Usuario" >
+            </div>
+            <div class="form-group">
+              <input type="Password"  formControlName="password" class="form-control" placeholder="Contraseña">
+            </div>
+            <div class="form-group" style="text-align: center;">
+              <button  (click)="login()" class="btn btn-block" style="background-color: #008037; color: white;">INGRESAR</button>
+            </div>
+          </form>
+        </div>
+        <div class="col-sm-6 hide-on-mobile">
+          <div id="demo" class="carousel slide" data-ride="carousel">
+            <!-- Indicators -->
+            <ul class="carousel-indicators">
+              <li data-target="#demo" data-slide-to="0" class="active"></li>
+              <li data-target="#demo" data-slide-to="1"></li>
+            </ul>
+            <!-- The slideshow -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

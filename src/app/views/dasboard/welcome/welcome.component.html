@@ -1,0 +1,15 @@
+<div class="container-img">
+  <img src="../../../../assets/imagenes/dashboard1.jpg" alt="Imagen 1">
+  <img src="../../../../assets/imagenes/dashboard.jpg" alt="Imagen 2">
+  <img src="../../../../assets/imagenes/dashboard2.jpg" alt="Imagen 3">
+</div>
+
+<div class="clock-container" style="width: 120px; height: 30px;">
+  <div id="clock">
+    {{currentHours < 10 ? "0" + currentHours : currentHours}}:{{currentMinutes < 10 ? "0" + currentMinutes : currentMinutes}}:{{currentSeconds < 10 ? "0" + currentSeconds : currentSeconds}} {{am_pm}}
+  </div>
+</div>
+
+
+
+

@@ -1,0 +1,107 @@
+<div class="container mt-2">
+  <h5 style="margin-right: 50px; text-align: center;">DESTINOS</h5>
+  <div class="input-group" style="display: flex">
+    <div class = "input-group-text bg-white">
+      <i class="fas fa-search"></i>
+    </div>
+    <input type="text" class="form-control" name="filtro" placeholder="Buscar destino" [(ngModel)]="filtro" >
+  </div>
+</div>
+
+
+<div class="container mt-3" style="overflow-y: scroll; height: 450px;">
+  <table class="table table-bordered table-striped">
+    <thead class="bg-dark text-white" style="position: sticky; top: -1;">              
+      <tr style="background-color: black;"> <!--#198754-->
+          <th class="custom-column">#</th>
+          <th hidden>ID DESTINO</th>
+          <th>NOMBRES</th>
+          <th>PAIS</th>
+          <th>CIUDAD</th>
+          <th>ATRACCIONES</th>
+          <th>CLIMA</th>
+          <th>IDIOMA</th>
+          <th>MONEDA</th>
+          <th class="col-1" style="text-align: center;">
+            <button
+              (click)="crearRegistro(template)"
+              class="btn btn-primary btn-sm"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of destino | filtroDestino:filtro | paginate: { itemsPerPage: cantidadRegistros, currentPage: page } ,let i=index">
+          <td>{{ (page - 1) * cantidadRegistros + i + 1 }}</td>
+          <td hidden>{{ d.iD_Destino }}</td>
+          <td>{{ d.nombre }}</td>
+          <td>{{ d.pais }}</td>
+          <td>{{ d.ciudad }}</td>
+          <td>{{ d.atracciones }}</td>
+          <td>{{ d.clima }}</td>
+          <td>{{ d.idioma }}</td>
+          <td>{{ d.moneda }}</td>
+          <td>
+            <!-- inicio boton editar -->
+            <button
+              style="margin-left: 2px; margin-right: 2px"
+              class="btn btn-sm btn-success"
+              (click)="editarRegistro(d, template)"
+            >
+              <i class="fas fa-edit"></i>
+            </button>
+            <!-- fin boton editar -->
+  
+            <button
+              (click)="modalDelete(d)"
+              style="margin-left: 2px; margin-right: 2px"
+              class="btn btn-sm btn-danger"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+<ng-template #template>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">
+      {{ tituloModal }}
+    </h4>
+    <button
+      type="button"
+      class="btn-close close pull-right"
+      aria-label="Close"
+      (click)="modalRef?.hide()"
+    >
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <!--
+    [] ==> variable de entrada
+    () ==> variable de salida
+    -->
+    <app-destino-register
+        [destino]="destinoSelected"
+        (closeModalEmmit)="recibeCloseModal($event)"
+      ></app-destino-register>
+  </div>
+</ng-template>
+<pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="siguiente"  style="position: fixed; bottom: 0;">
+</pagination-controls>
+<!-- ... -->
+<div style="position: fixed; bottom: 20px; right: 20px;">
+  <label for="cantidadRegistros" style="padding-right: 5px;">Mostrar registros:</label>
+  <select id="cantidadRegistros" [(ngModel)]="cantidadRegistros" (change)="onRegistrosChange()" style="padding-right: 5px;">
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
+<!-- ... -->

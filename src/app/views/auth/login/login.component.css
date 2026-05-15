@@ -1,0 +1,119 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:300,400,700&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Open+Sans&display=swap%27);
+@import url(https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Nerko+One&family=Open+Sans&display=swap%27);
+body {
+  background: #f5f5f5;
+  
+}
+
+@media only screen and (max-width: 767px) {
+  .hide-on-mobile {
+    display: none;
+  }
+}
+
+.login-box {
+  background: url('../../../../assets/imagenes/portada.png');
+  background-size: cover;
+  background-position: center;
+  padding: 50px;
+  margin: 0;
+  min-height: 610px;
+  -webkit-box-shadow: 0 2px 60px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 60px -5px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-family: 'Nerko One', cursive;
+  letter-spacing: 0.2rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 5rem;
+  text-shadow: -4px 3px 0 black, -14px 7px 0 #0a0e27;
+  text-align: center;
+  color: #888888;
+  margin-bottom: 50px;
+}
+
+
+.logo .logo-font {
+  color: #008037;
+}
+
+@media only screen and (max-width: 767px) {
+  .logo {
+    font-size: 34px;
+  }
+}
+
+.header-title {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 2rem;
+  text-shadow: 2px 2px 2px black;
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.login-form {
+  max-width: 300px;
+  margin: 0 auto;
+  font-family: 'Josefin Sans';
+}
+
+
+.login-form .form-control {
+  border-radius: 0;
+  margin-bottom: 30px;
+}
+
+.login-form .form-group {
+  position: relative;
+  
+}
+
+
+.login-form .form-group .forgot-password {
+  position: absolute;
+  top: 6px;
+  right: 15px;
+}
+
+.login-form .btn {
+  border-radius: 5px;
+  -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.login-form .btn.btn-primary {
+  background: #0cb314;
+  border-color: #15cc3c;
+}
+
+.slider-feature-card {
+  background: #fff;
+  max-width: 280px;
+  margin: 0 auto;
+  padding: 30px;
+  text-align: center;
+  -webkit-box-shadow: 0 2px 25px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 25px -3px rgba(0, 0, 0, 0.1);
+}
+
+.slider-feature-card img {
+  height: 80px;
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.slider-feature-card h3,
+.slider-feature-card p {
+  margin-bottom: 30px;
+}
+
+.carousel-indicators {
+  bottom: -50px;
+}
+
+.carousel-indicators li {
+  cursor: pointer;
+}

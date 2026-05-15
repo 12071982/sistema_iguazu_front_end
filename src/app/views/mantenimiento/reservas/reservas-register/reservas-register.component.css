@@ -1,0 +1,41 @@
+/* Ajuste de tamaño de fuente para el marcador de posición de .pagar */
+.pagar::placeholder {
+    font-size: 12px;
+}
+
+/* Estilo común para th y td */
+th, td {
+    vertical-align: middle;
+    font-size: 12px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* Tamaño de fuente para el icono dentro de los botones */
+button i {
+    font-size: 12px;
+}
+
+/* Eliminar el sombreado y ajustar el color del borde en el foco de los input */
+input.form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da; /* Puedes ajustar el color del borde según tus necesidades */
+}
+
+/* Selecciona los campos de entrada para cliente */
+#form_new_cliente_reserva input[type="text"],
+#form_new_cliente_reserva input[type="number"],
+#form_new_cliente_reserva input[type="button"],
+#form_new_cliente_reserva input[type="hidden"] {
+  font-size: 12px;
+}
+
+#detalle_reserva input[type="text"],
+#detalle_reserva textarea {
+  font-size: 12px;
+}
+
+/* Adicionalmente, puedes ajustar el tamaño de fuente de otros inputs específicos si es necesario */
+.pagar {
+  font-size: 12px;
+}
+

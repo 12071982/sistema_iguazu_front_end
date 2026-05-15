@@ -1,0 +1,47 @@
+<div class="container mt-2">
+  <h5 style="margin-right: 50px; text-align: center;">DETALLE DE RESERVAS</h5>
+</div>
+
+<div class="container mt-3" style="overflow-y: scroll; height: 450px;">
+  <table class="table table-bordered table-striped" id="tablaPaquetes">
+    <thead class="text-white" style="position: sticky; top: 0; text-align: center;">
+      <tr style="background-color: black;">
+        <th class="col-0">#</th>
+        <th hidden>ID DETALLE RESERVA</th>
+        <th>CLIENTE</th>
+        <th>N° PERS.</th>
+        <th>PAQUETE</th>
+        <th>DESTINO</th>
+        <th>PRECIO</th>
+        <th>OBSERVACIONES</th>
+        <th>FECHA RESERVA</th>
+        <th>ESTADO</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let d of reserva.slice().reverse() | paginate: { itemsPerPage: cantidadRegistros, currentPage: page }; let i = index; trackBy: trackById">
+        <td>{{ (page - 1) * cantidadRegistros + i + 1 }}</td>
+        <td>{{ clienteTipoMap[d.iD_Cliente] }}</td>
+        <td>{{ d.numero_Personas }}</td>
+        <td>{{ paqueteTipoMap[d.iD_Paquete] }}</td>
+        <td>{{ destino_nombreTipoMap.get(d.paquete?.iD_Destino ?? 0) }}</td>
+        <td>{{ d.precio_Total }} {{ destino_monedaTipoMap.get(d.paquete?.iD_Destino ?? 0) }}</td>
+        <td>{{ d.observaciones }}</td>
+        <td>{{ d.fecha_Reserva }}</td>
+        <td>{{ d.estatus }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="Siguiente" style="position: fixed; bottom: 0;"></pagination-controls>
+
+<div style="position: fixed; bottom: 20px; right: 20px;">
+  <label for="cantidadRegistros" style="padding-right: 5px;">Mostrar registros:</label>
+  <select id="cantidadRegistros" [(ngModel)]="cantidadRegistros" (change)="onRegistrosChange()" style="padding-right: 5px;">
+    <option value="10">10</option>
+    <option value="20">20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
