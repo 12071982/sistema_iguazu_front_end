@@ -23,66 +23,90 @@ export class UsuarioRegisterComponent implements OnInit {
     private _usuarioService: UsuarioService
   ) {
     this.myForm = this.fb.group({
-      iD_Usuario: [null, [Validators.required]],
-      nombre: [null, [Validators.required]],
-      apellido: [null, [Validators.required]],
-      correo_Electronico: [null, [Validators.required]],
-      password: [null, [Validators.required]],
-      rol: [null, [Validators.required]],
-      fecha_Registro: [null, [Validators.required]],
-      estatus: [null, [Validators.required]],
-    });
+    iD_Usuario: [0],
+    nombre: ['', [Validators.required]],
+    apellido: ['', [Validators.required]],
+    correo_Electronico: ['', [Validators.required]], 
+    password: ['', [Validators.required]],
+    rol: ['', [Validators.required]],
+    fecha_Registro: [''],
+    estatus: ['', [Validators.required]],
+  });
   }
 
   get f() { return this.myForm.controls; }
 
   ngOnInit(): void {
-    /*FIXME: SET VALUE TRAE ERRORES CUANDO LOS ATRIBUTOS NO COINCIDEN AL 100% */
-    //this.myForm.setValue(this.estado);
-    this.myForm.patchValue(this.usuario);
+    if (this.usuario && this.usuario.iD_Usuario > 0) {
+      this.myForm.patchValue(this.usuario);
+      this.myForm.get('password')?.setValue('');
+      this.myForm.get('password')?.setValidators(null);
+    } else {
+      this.myForm.get('password')?.setValidators([Validators.required]);
+    }
+    this.myForm.get('password')?.updateValueAndValidity();
   }
 
   closeModal(res: boolean) {
     this.closeModalEmmit.emit(res);
   }
 
-  save()
-  {
-    /*FIXME: SI POR A O B, TENEMOS UN CAMPO DES-HABILITADO DESDE ANGULAR / NO TRAE ESE VALOR */
-    //this.estado = this.myForm.value();
-    
-    this.usuario = this.myForm.getRawValue()
-    if(this.usuario.iD_Usuario == 0)
-    {
-      this.createUsuario();
-      
+  save() {
+    if (this.myForm.invalid) {
+      this.myForm.markAllAsTouched();
+      Swal.fire('Atención', 'Por favor, completa todos los campos obligatorios', 'warning');
+      return;
     }
-    else{
+
+    const formValues = this.myForm.getRawValue();
+
+    if (formValues.iD_Usuario > 0 && !formValues.password) {
+      formValues.password = this.usuario.password;
+    }
+
+    this.usuario = formValues;
+
+    if (this.usuario.iD_Usuario === 0 || this.usuario.iD_Usuario == null) {
+      // NO enviar iD_Usuario en creación
+      const usuarioParaCrear = { ...this.usuario };
+      delete (usuarioParaCrear as any).iD_Usuario;
+      this.usuario = usuarioParaCrear;
+      this.createUsuario();
+    } else {
       this.updateUsuario();
     }
-
   }
 
-  createUsuario()
-  {
+  createUsuario() {
     this._usuarioService.create(this.usuario).subscribe(
-      (data:UsuarioModel)=>{
-        //alert("Registro creado de forma satisfactoría");
+      (data: UsuarioModel) => {
         Swal.fire({
           position: 'center',
           icon: 'success',
-          title: 'Registro creado de forma satisfactoría',
+          title: 'Registro creado de forma satisfactoria',
           showConfirmButton: false,
-          timer:1650
-          });
+          timer: 1650
+        });
         this.closeModalEmmit.emit(true);
       },
       err => {
-        console.log(err);
+        console.error('Objeto de error completo:', err);
+        let errorMsg = "Error interno al intentar crear el usuario.";
+        
+        if (typeof err.error === 'string') {
+          errorMsg = err.error;
+        } else if (err.error && err.error.message) {
+          errorMsg = err.error.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+
+        Swal.fire('Error en el Servidor', errorMsg, 'error');
         this.closeModalEmmit.emit(false);
       }
     );
   }
+
   updateUsuario()
   {
     this._usuarioService.update(this.usuario).subscribe(

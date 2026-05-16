@@ -221,6 +221,7 @@ export class ReservasRegisterComponent implements OnInit {
   onChangeCliente(cliente: any) {
     this.clienteSelect = cliente;
     this.miReserva.iD_Cliente = cliente.iD_Cliente;
+    this.modalRef?.hide();
   }
 
   onChangePaquete(paquete: PaqueteModel) {

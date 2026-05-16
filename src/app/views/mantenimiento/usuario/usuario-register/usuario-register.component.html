@@ -2,8 +2,7 @@
     <div class="row">
         <div class="col-12">
             <div class="form-group">
-                <label hidden for=""><strong>ID Usuario</strong></label>
-                <input hidden type="number" class="form-control" formControlName="iD_Usuario" readonly>
+                <input type="text" hidden class="form-control" formControlName="iD_Usuario" readonly>
             </div>
         </div>
     </div>
@@ -35,7 +34,10 @@
         <div class="col-12">
             <div class="form-group">
                 <label for=""><strong>Contraseña</strong></label>
-                <input type="text" class="form-control" formControlName="password" placeholder="Ingrese su contraseña ">
+                <input type="password" 
+                    class="form-control" 
+                    formControlName="password" 
+                    placeholder="Dejar en blanco para mantener la actual">
             </div>
         </div>
     </div>
@@ -51,11 +53,18 @@
             </div>            
         </div>
     </div>
+    
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for=""><strong>Estado</strong></label>
-                <input type="text" class="form-control" name="estatus" formControlName="estatus" placeholder="Ingrese su Estado">
+                <select class="form-select" name="estatus" formControlName="estatus">
+                    <option value="" disabled selected hidden>Seleccione un Estado</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                    <option value="Suspendido">Suspendido</option>
+                    <option value="Retirado">Retirado</option>
+                </select>
             </div>
         </div>
     </div>

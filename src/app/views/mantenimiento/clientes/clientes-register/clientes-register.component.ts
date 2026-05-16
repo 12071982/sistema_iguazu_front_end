@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ClienteModel } from 'src/app/models/clientes.model';
 import { ClientesService } from 'src/app/service/clientes.service';
 import Swal from 'sweetalert2';
 import { DatePipe } from '@angular/common';
 import { UsuarioModel } from 'src/app/models/usuario.model';
-import { SesionService } from 'src/app/service/sesion.service'; // Importa el servicio de sesión
+import { SesionService } from 'src/app/service/sesion.service';
 
 @Component({
   selector: 'app-clientes-register',
@@ -20,42 +20,111 @@ export class ClientesRegisterComponent implements OnInit {
   myForm: FormGroup;
   pipe = new DatePipe('en-US');
   usuario: UsuarioModel[] = [];
+  mostrarInputOtros = false;
+
+  readonly EDAD_MINIMA = 3;
+  readonly EDAD_MAXIMA = 120;
 
   constructor(
     private fb: FormBuilder,
     private _clientesService: ClientesService,
-    private _sesionService: SesionService // Inyecta el servicio de sesión
+    private _sesionService: SesionService
   ) {
     this.myForm = this.fb.group({
       iD_Cliente: [null, [Validators.required]],
       iD_Usuario: [null, [Validators.required]],
       nombre: [null, [Validators.required]],
       apellido: [null, [Validators.required]],
-      correo: [null, [Validators.required]],
-      telefono: [null],
+      correo: [null, [Validators.required, Validators.email]],
+      telefono: [null, [Validators.required, Validators.pattern('^[0-9]{9,12}$')]],
       direccion: [null, [Validators.required]],
-      fecha_Nacimiento: [null, [Validators.required]],
-      nacionalidad: [null, [Validators.required]],
-      pasaporte: [null, [Validators.required]],
-      frecuencia_Viajero: [null, [Validators.required]],
+      fecha_Nacimiento: [null, [Validators.required, this.validarRangoEdad()]],
+      nacionalidad: ['Peruana', [Validators.required]],
+      nacionalidadOtros: [''],
+      pasaporte: [null],
+      frecuencia_Viajero: ['Media', [Validators.required]],
+    });
+
+    this.myForm.get('nacionalidad')?.valueChanges.subscribe((valor: string) => {
+      const controlOtros = this.myForm.get('nacionalidadOtros');
+      
+      if (valor === 'Otros') {
+        this.mostrarInputOtros = true;
+        controlOtros?.setValidators([Validators.required]);
+      } else {
+        this.mostrarInputOtros = false;
+        controlOtros?.clearValidators();
+      }
+      controlOtros?.updateValueAndValidity();
     });
   }
 
   get f() { return this.myForm.controls; }
 
+  validarRangoEdad() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+
+      const fechaNacimiento = new Date(control.value);
+      const hoy = new Date();
+
+      if (fechaNacimiento > hoy) {
+        return { 'fechaFutura': true };
+      }
+
+      let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+      const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+      
+      if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+        edad--;
+      }
+
+      if (edad < this.EDAD_MINIMA) {
+        return { 'edadMinima': { valor: this.EDAD_MINIMA } };
+      }
+
+      if (edad > this.EDAD_MAXIMA) {
+        return { 'edadMaxima': { valor: this.EDAD_MAXIMA } };
+      }
+
+      return null;
+    };
+  }
+
+  getMinDate(): string {
+    const hoy = new Date();
+    const haceXAnos = new Date(hoy.getFullYear() - this.EDAD_MINIMA, hoy.getMonth(), hoy.getDate());
+    return haceXAnos.toISOString().split('T')[0];
+  }
+
+  getMaxDate(): string {
+    const hoy = new Date();
+    const hace120Anos = new Date(hoy.getFullYear() - this.EDAD_MAXIMA, hoy.getMonth(), hoy.getDate());
+    return hace120Anos.toISOString().split('T')[0];
+  }
+
   ngOnInit(): void {
+    const nacionalidadActual = this.clientes.nacionalidad;
+    if (nacionalidadActual && !['Peruana', 'Venezolana', 'Boliviana', 'Chilena'].includes(nacionalidadActual)) {
+      this.mostrarInputOtros = true;
+      this.myForm.get('nacionalidad')?.setValue('Otros');
+      this.myForm.get('nacionalidadOtros')?.setValue(nacionalidadActual);
+    }
+
     this.myForm.patchValue({
       iD_Cliente: this.clientes.iD_Cliente,
       iD_Usuario: this.clientes.iD_Usuario,
       nombre: this.clientes.nombre,
       apellido: this.clientes.apellido,
-      correo: this.clientes.nombre,
+      correo: this.clientes.correo,
       telefono: this.clientes.telefono,
       direccion: this.clientes.direccion,
       fecha_Nacimiento: this.formatDate(this.clientes.fecha_Nacimiento),
-      nacionalidad: this.clientes.nacionalidad,
+      nacionalidad: this.clientes.nacionalidad || 'Peruana',
       pasaporte: this.clientes.pasaporte,
-      frecuencia_Viajero: this.clientes.frecuencia_Viajero
+      frecuencia_Viajero: this.clientes.frecuencia_Viajero || 'Media'
     });
   }
 
@@ -75,7 +144,23 @@ export class ClientesRegisterComponent implements OnInit {
   }
 
   save() {
+    if (this.myForm.invalid) {
+      Swal.fire({
+        position: 'center',
+        icon: 'warning',
+        title: 'Formulario inválido',
+        text: 'Por favor, completa todos los campos correctamente',
+        showConfirmButton: true
+      });
+      return;
+    }
+
     this.clientes = this.myForm.getRawValue();
+
+    // Si seleccionó "Otros", usar el valor del input
+    if (this.myForm.get('nacionalidad')?.value === 'Otros') {
+      this.clientes.nacionalidad = this.myForm.get('nacionalidadOtros')?.value;
+    }
 
     if (this.clientes.iD_Cliente == 0) {
       this.createClientes();
@@ -87,8 +172,14 @@ export class ClientesRegisterComponent implements OnInit {
   createClientes() {
     let cliente: any = this.myForm.value;
     
+    // Si seleccionó "Otros", usar el valor del input
+    if (this.myForm.get('nacionalidad')?.value === 'Otros') {
+      cliente.nacionalidad = this.myForm.get('nacionalidadOtros')?.value;
+    }
+
     cliente.fecha_Nacimiento = this.formatDateForServer(cliente.fecha_Nacimiento);
-    const authenticatedUser = this._sesionService.getUser(); // Obtén el usuario autenticado
+    const authenticatedUser = this._sesionService.getUser();
+    
     if (authenticatedUser) {
       cliente.iD_Usuario = authenticatedUser.iD_Usuario;
     } else {
@@ -115,6 +206,13 @@ export class ClientesRegisterComponent implements OnInit {
       },
       err => {
         console.error('Error creating client:', err);
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Error al crear el registro',
+          showConfirmButton: false,
+          timer: 1650
+        });
         this.closeModalEmmit.emit(false);
       }
     );
@@ -123,6 +221,11 @@ export class ClientesRegisterComponent implements OnInit {
   updateClientes() {
     let cliente: any = this.myForm.value;
     
+    // Si seleccionó "Otros", usar el valor del input
+    if (this.myForm.get('nacionalidad')?.value === 'Otros') {
+      cliente.nacionalidad = this.myForm.get('nacionalidadOtros')?.value;
+    }
+
     cliente.fecha_Nacimiento = this.formatDateForServer(cliente.fecha_Nacimiento);
 
     this._clientesService.update(cliente).subscribe(
@@ -138,6 +241,13 @@ export class ClientesRegisterComponent implements OnInit {
       },
       err => {
         console.error('Error updating client:', err);
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Error al actualizar el registro',
+          showConfirmButton: false,
+          timer: 1650
+        });
         this.closeModalEmmit.emit(false);
       }
     );
