@@ -22,11 +22,7 @@ import { DatePipe } from '@angular/common';
 import { Observable } from 'rxjs';
 import Swal from 'sweetalert2';
 
-
-@Pipe({
-  name: 'round',
-})
-
+@Pipe({ name: 'round' })
 export class RoundPipe implements PipeTransform {
   transform(value: number): number {
     return Math.round(value * 100) / 100;
@@ -38,34 +34,39 @@ export class RoundPipe implements PipeTransform {
   templateUrl: './reservas-register.component.html',
   styleUrls: ['./reservas-register.component.css'],
 })
-
 export class ReservasRegisterComponent implements OnInit {
   page = 1;
-  filtroCliente = ''
-  filtroPaquete = ''
+  filtroCliente = '';
+  filtroPaquete = '';
   filtro = '';
   today: Date = new Date();
   pipe = new DatePipe('en-US');
   todayWithPipe = null;
-  /*VARIABLES DE ENTRADA */
+
   @Input() reservas: ReservasModel = new ReservasModel();
-  /*VARIABLES DE SALIDA */
   @Output() closeModalEmmit = new EventEmitter<boolean>();
 
   modalRef?: BsModalRef;
   myForm: FormGroup;
+
   // cliente
   formNewClienteReserva = new FormGroup({});
   clienteSelect: ClienteModel = new ClienteModel();
   clienteList: ClienteModel[] = [];
-  //paquete
+
+  // acompañantes activos en el formulario
+  acompanantes: ClienteModel[] = [];
+  acompanantesList: ClienteModel[] = [];
+
+  acompanantesComprobante: ClienteModel[] = [];
+
+  // paquete
   paquete: PaqueteModel[] = [];
   paqueteselect: PaqueteModel = new PaqueteModel();
-  //usuario
+
+  // otros
   usuario: any = {};
-  //Cliente
   cliente: any = {};
-  //Registrar reserva
   paquetesseleccionados: PaqueteModel[] = [];
   pagar_con!: number;
   vuelto: number = 0;
@@ -77,6 +78,8 @@ export class ReservasRegisterComponent implements OnInit {
   destinoTiplist: any = [];
   destino_nombreTipoMap: Map<number, string> = new Map();
   destino_monedaTipoMap: Map<number, string> = new Map();
+  pagarConComprobante: number = 0;
+  vueltoComprobante: number = 0;
 
   constructor(
     private modalService: BsModalService,
@@ -88,47 +91,49 @@ export class ReservasRegisterComponent implements OnInit {
     private _destinoservice: DestinoService,
   ) {
     this.myForm = this.fb.group({
-      iD_Reserva: [null, [Validators.required]],
+      iD_Reserva: [null],
       iD_Cliente: [null, [Validators.required]],
       iD_Paquete: [null, [Validators.required]],
-      fecha_Reserva: [null, [Validators.required]],
+      fecha_Reserva: [null],
       numero_Personas: [1, [Validators.required, Validators.min(1)]],
-      precio_Total: [null, [Validators.required]],
-      estatus: [null, [Validators.required]],
-      observaciones: [null, [Validators.required]],
-
-      iD_Pago: [null, [Validators.required]],
-      metodo_Pago: [null, [Validators.required]],
-      monto: [null, [Validators.required]],
-      fecha_Pago: [null, [Validators.required]],
-      numero_Transaccion: [null, [Validators.required]],
-      //formArray
+      precio_Total: [null],
+      estatus: [null],
+      observaciones: [null],
+      iD_Pago: [null],
+      metodo_Pago: [null],
+      monto: [null],
+      fecha_Pago: [null],
+      numero_Transaccion: [null],
+      pagar_con: [null],
+      vuelto: [null],
       DetalleReservas: this.fb.array([]),
     });
   }
 
-  get f() {
-    return this.myForm.controls;
-  }
+  get f() { return this.myForm.controls; }
 
   get DetalleReservas(): FormArray {
     return this.myForm.get('DetalleReservas') as FormArray;
   }
 
   ngOnInit(): void {
-    /*FIXME: SET VALUE TRAE ERRORES CUANDO LOS ATRIBUTOS NO COINCIDEN AL 100% */
-    //this.myForm.setValue(this.estado);
     this.myForm.patchValue({
       ...this.reservas,
-      numero_Personas: this.reservas.numero_Personas && this.reservas.numero_Personas > 0
-        ? this.reservas.numero_Personas
-        : 1
+      numero_Personas:
+        this.reservas.numero_Personas && this.reservas.numero_Personas > 0
+          ? this.reservas.numero_Personas : 1,
     });
-    
+
     this.obtenerUsuario();
     this.destinoTiplist$ = this._destinoservice.getAll();
     this.refreshDestinotipoMap();
-    this.myForm.get('numero_Personas')?.valueChanges.subscribe(() => {
+
+    this.myForm.get('numero_Personas')?.valueChanges.subscribe((valor) => {
+      const numeroValido = Math.max(1, parseInt(valor) || 1);
+      const maxAcompanantes = numeroValido - 1;
+      if (this.acompanantes.length > maxAcompanantes) {
+        this.acompanantes = this.acompanantes.slice(0, maxAcompanantes);
+      }
       this.calcularTotalPrice();
     });
   }
@@ -137,46 +142,33 @@ export class ReservasRegisterComponent implements OnInit {
     this._destinoservice.getAll().subscribe((data) => {
       this.destinoTiplist = data;
       for (let i = 0; i < data.length; i++) {
-        this.destino_nombreTipoMap.set(
-          this.destinoTiplist[i].iD_Destino,
-          this.destinoTiplist[i].nombre
-        );
-        this.destino_monedaTipoMap.set(
-          this.destinoTiplist[i].iD_Destino,
-          this.destinoTiplist[i].moneda
-        );
+        this.destino_nombreTipoMap.set(data[i].iD_Destino, data[i].nombre);
+        this.destino_monedaTipoMap.set(data[i].iD_Destino, data[i].moneda);
       }
     });
   }
 
   newReservaArray(detalle: DetalleReservaModel): FormGroup {
-
     const paqueteEncontrado = this.paquete.find(p => p.iD_Paquete === detalle.iD_Paquete);
     const destino_nombre = paqueteEncontrado ? this.destino_nombreTipoMap.get(paqueteEncontrado.iD_Destino) : '';
     const destino_moneda = paqueteEncontrado ? this.destino_monedaTipoMap.get(paqueteEncontrado.iD_Destino) : '';
     const destino_moneda_monto = `${detalle.precio_base_paquete} ${destino_moneda}`;
 
     return this.fb.group({
-      iD_Pago: [
-        { value: detalle.iD_Pago, disabled: true },
-        [Validators.required],
-      ],
-      iD_Reserva: [detalle.iD_Reserva, []],
-      iD_Paquete: [detalle.iD_Paquete, []],
-      precio_total: [0, []],
-
-      // DATOS DEL PAQUETE
-      html_nombre_paquete: [detalle.nombre_paquete, []],
-      html_descripcion_paquete: [detalle.descripcion_paquete, []],
-      html_duracion_paquete: [detalle.duracion_paquete, []],
-      html_fecha_inicio_paquete: [detalle.fecha_inicio_paquete, []],
-      html_fecha_fin_paquete: [detalle.fecha_fin_paquete, []],
-      html_destino_paquete: [destino_nombre, []],
-      html_moneda_paquete: [destino_moneda, []],
-      precio_base_paquete: [detalle.precio_base_paquete, []], // Asegúrate de agregar este campo
-      html_moneda_monto: [destino_moneda_monto, []],
+      iD_Pago: [{ value: detalle.iD_Pago, disabled: true }],
+      iD_Reserva: [detalle.iD_Reserva],
+      iD_Paquete: [detalle.iD_Paquete],
+      precio_total: [0],
+      html_nombre_paquete: [detalle.nombre_paquete],
+      html_descripcion_paquete: [detalle.descripcion_paquete],
+      html_duracion_paquete: [detalle.duracion_paquete],
+      html_fecha_inicio_paquete: [detalle.fecha_inicio_paquete],
+      html_fecha_fin_paquete: [detalle.fecha_fin_paquete],
+      html_destino_paquete: [destino_nombre],
+      html_moneda_paquete: [destino_moneda],
+      precio_base_paquete: [detalle.precio_base_paquete],
+      html_moneda_monto: [destino_moneda_monto],
     });
-
   }
 
   obtenerUsuario() {
@@ -184,8 +176,9 @@ export class ReservasRegisterComponent implements OnInit {
   }
 
   openListCliente(template: TemplateRef<any>) {
-    this.filtroCliente = ''; // Limpiar el campo de búsqueda
+    this.filtroCliente = '';
     this.filtroPaquete = '';
+    this.filtro = '';
     this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
       this.clienteList = data;
       this.openModal(template);
@@ -193,25 +186,65 @@ export class ReservasRegisterComponent implements OnInit {
   }
 
   openListPaquete(template: TemplateRef<any>) {
-    this.filtroCliente = '';
+    this.filtroPaquete = '';
     this._produtoservice.getAll().subscribe((data: PaqueteModel[]) => {
       this.paquete = data;
       this.openModal(template);
     });
   }
 
+  openListAcompanantes(template: TemplateRef<any>) {
+    this.filtro = '';
+    this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
+      // Guardamos la lista completa filtrando al titular y los ya seleccionados
+      this.acompanantesList = data.filter(
+        (c) =>
+          c.iD_Cliente !== this.clienteSelect.iD_Cliente &&
+          !this.acompanantes.some((a) => a.iD_Cliente === c.iD_Cliente)
+      );
+      this.openModal(template);
+    });
+  }
+
+  agregarAcompanante(cliente: ClienteModel) {
+    if (this.acompanantes.find((a) => a.iD_Cliente === cliente.iD_Cliente)) {
+      Swal.fire({ position: 'center', icon: 'warning', title: 'Este cliente ya está agregado', showConfirmButton: false, timer: 1500 });
+      return;
+    }
+    if (this.obtenerAcompanantesFaltantes() <= 0) {
+      Swal.fire({ position: 'center', icon: 'warning', title: 'Ya se alcanzó el número máximo de personas', showConfirmButton: false, timer: 1500 });
+      return;
+    }
+    
+    this.acompanantes.push(cliente);
+
+    this.acompanantesList = this.acompanantesList.filter(c => c.iD_Cliente !== cliente.iD_Cliente);
+
+    if (this.obtenerAcompanantesFaltantes() === 0) {
+      this.modalRef?.hide();
+    }
+  }
+
+  removerAcompanante(index: number) {
+    this.acompanantes.splice(index, 1);
+  }
+
+  obtenerAcompanantesFaltantes(): number {
+    const numeroPersonas = parseInt(this.myForm.get('numero_Personas')?.value) || 1;
+    return Math.max(0, numeroPersonas - (this.acompanantes.length + 1));
+  }
+
+  puedeAgregarAcompanantes(): boolean {
+    const numeroPersonas = parseInt(this.myForm.get('numero_Personas')?.value) || 1;
+    return numeroPersonas > 1 && this.obtenerAcompanantesFaltantes() > 0;
+  }
+
   openModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(
-      template,
-      Object.assign(
-        {},
-        {
-          class: 'gray modal-lg modal-dialog-centered',
-          ignoreBackdropClick: true,
-          keyboard: true,
-        }
-      )
-    );
+    this.modalRef = this.modalService.show(template, Object.assign({}, {
+      class: 'gray modal-lg modal-dialog-centered',
+      ignoreBackdropClick: true,
+      keyboard: true,
+    }));
   }
 
   closeModal(res: boolean) {
@@ -221,13 +254,13 @@ export class ReservasRegisterComponent implements OnInit {
   onChangeCliente(cliente: any) {
     this.clienteSelect = cliente;
     this.miReserva.iD_Cliente = cliente.iD_Cliente;
+    this.acompanantes = [];
     this.modalRef?.hide();
   }
 
   onChangePaquete(paquete: PaqueteModel) {
     this.paqueteselect = paquete;
     this.miReserva.iD_Paquete = paquete.iD_Paquete;
-
     this.DetalleReservas.clear();
 
     let detalleReserva: DetalleReservaModel = new DetalleReservaModel();
@@ -243,14 +276,12 @@ export class ReservasRegisterComponent implements OnInit {
     this.DetalleReservas.push(this.newReservaArray(detalleReserva));
 
     this.calcularTotalPrice();
+    this.modalRef?.hide();
   }
-
-
 
   save() {
     this.reservas = this.myForm.getRawValue();
-    if (this.reservas.iD_Reserva == 0) {
-
+    if (!this.reservas.iD_Reserva || this.reservas.iD_Reserva == 0) {
       this.createReserva();
     } else {
       this.updateReserva();
@@ -260,68 +291,21 @@ export class ReservasRegisterComponent implements OnInit {
   createReserva() {
     this._reservasService.create(this.reservas).subscribe(
       (data: ReservasModel) => {
-        // alert("Registro creado de forma satisfactoría");
-        Swal.fire({
-          position: 'center',
-          icon: 'success',
-          title: 'Registro creado de forma satisfactoría',
-          showConfirmButton: false,
-          timer: 1650,
-        });
+        Swal.fire({ position: 'center', icon: 'success', title: 'Registro creado de forma satisfactoria', showConfirmButton: false, timer: 1650 });
         this.closeModalEmmit.emit(true);
       },
-      (err) => {
-        console.log(err);
-        this.closeModalEmmit.emit(false);
-      }
+      (err) => { console.log(err); this.closeModalEmmit.emit(false); }
     );
   }
+
   updateReserva() {
     this._reservasService.update(this.reservas).subscribe(
       (data: ReservasModel) => {
-        // alert("Registro actualizado de forma satisfactoría");
-        Swal.fire({
-          position: 'center',
-          icon: 'success',
-          title: 'Registro actualizado de forma satisfactoría',
-          showConfirmButton: false,
-          timer: 1650,
-        });
+        Swal.fire({ position: 'center', icon: 'success', title: 'Registro actualizado de forma satisfactoria', showConfirmButton: false, timer: 1650 });
         this.closeModalEmmit.emit(true);
       },
-      (err) => {
-        console.log(err);
-        this.closeModalEmmit.emit(false);
-      }
+      (err) => { console.log(err); this.closeModalEmmit.emit(false); }
     );
-  }
-
-  agregarpaquete(e: any, paquete: any) {
-    let checked: boolean;
-    checked = e.target.checked;
-    if (checked) {
-      let detalleReserva: DetalleReservaModel;
-      detalleReserva = new DetalleReservaModel();
-      detalleReserva.iD_Pago = 0;
-      detalleReserva.iD_Paquete = paquete.iD_Paquete;
-      detalleReserva.iD_Reserva = 0;
-
-      // DATO DEL PAQUETE
-      detalleReserva.nombre_paquete = paquete.nombre;
-      detalleReserva.descripcion_paquete = paquete.descripcion;
-      detalleReserva.duracion_paquete = paquete.duracion;
-      detalleReserva.fecha_inicio_paquete = paquete.fecha_Inicio;
-      detalleReserva.fecha_fin_paquete = paquete.fecha_Fin;
-      detalleReserva.precio_base_paquete = paquete.precio_Base;
-      if (paquete.destino) {
-        detalleReserva.destino_paquete = paquete.destino.nombre;
-      }
-      this.DetalleReservas.push(this.newReservaArray(detalleReserva));
-      e.target.disabled = true;
-      this.calcularTotalPrice();
-    }
-    this.paqueteselect = paquete;
-    this.miReserva.iD_Paquete = paquete.iD_Paquete;
   }
 
   removeElement(i: number) {
@@ -329,31 +313,19 @@ export class ReservasRegisterComponent implements OnInit {
     this.calcularTotalPrice();
   }
 
-
   changerValueFormArray(i: number) {
-    let obj_1: DetalleReservaModel;
-    obj_1 = new DetalleReservaModel();
-    obj_1 = this.DetalleReservas.controls[i].value;
-
-    let precio_total = 0;
-    let obj = this.DetalleReservas.controls[i]
-      .get('precio_base_paquete')
-      ?.setValue(precio_total);
-
-    this.calcularTotalPrice(); // Calcular el precio total después de cambiar el valor
+    this.DetalleReservas.controls[i].get('precio_base_paquete')?.setValue(0);
+    this.calcularTotalPrice();
   }
 
   getMonedaPorPaquete(iD_Paquete: number): string {
-    const paqueteEncontrado = this.paquete.find(p => p.iD_Paquete === iD_Paquete);
-    return paqueteEncontrado ? this.destino_monedaTipoMap.get(paqueteEncontrado.iD_Destino) || '' : '';
+    const p = this.paquete.find(p => p.iD_Paquete === iD_Paquete);
+    return p ? this.destino_monedaTipoMap.get(p.iD_Destino) || '' : '';
   }
 
   calcularTotalPrice() {
     this.total_price = 0;
-
-    // Obtiene el número de personas (o 1 si está vacío)
-    const numeroPersonas = this.myForm.get('numero_Personas')?.value || 1;
-
+    const numeroPersonas = parseInt(this.myForm.get('numero_Personas')?.value) || 1;
     const detalles: DetalleReservaModel[] = this.DetalleReservas.getRawValue();
 
     detalles.forEach((detalle) => {
@@ -362,117 +334,139 @@ export class ReservasRegisterComponent implements OnInit {
       }
     });
 
-    // Asignar la moneda desde el primer paquete (opcional)
-    const primerPaquete = this.paquete[0];
-    if (primerPaquete) {
-      this.nombre_moneda = this.destino_monedaTipoMap.get(primerPaquete.iD_Destino) || '';
+    if (this.paqueteselect?.iD_Paquete) {
+      this.nombre_moneda = this.destino_monedaTipoMap.get(this.paqueteselect.iD_Destino) || '';
     }
 
     this.myForm.get('precio_Total')?.setValue(this.total_price);
+    
+    // ✅ ASIGNAR AUTOMÁTICAMENTE pagar_con con el total y vuelto en 0
+    this.pagar_con = this.total_price;
+    this.vuelto = 0;
   }
-
-
-
 
   calcularVuelto(event: any) {
     this.pagar_con = parseFloat(event.target.value);
-    if (isNaN(this.pagar_con) || this.pagar_con === null || this.pagar_con === 0) {
+    if (isNaN(this.pagar_con) || !this.pagar_con) {
       this.vuelto = 0;
     } else if (this.pagar_con < this.total_price) {
-      Swal.fire({
-        position: 'center',
-        icon: 'info',
-        title: 'El monto a pagar es menor al precio total',
-        showConfirmButton: false,
-        timer: 1650,
-      });
+      Swal.fire({ position: 'center', icon: 'info', title: 'El monto a pagar es menor al precio total', showConfirmButton: false, timer: 1650 });
       this.vuelto = 0;
     } else {
       this.vuelto = this.pagar_con - this.total_price;
     }
   }
 
-
   limpiarTablas() {
-    // Resetea el formulario
     this.myForm.reset();
-
-    // Resetea las variables del componente
     this.clienteSelect = new ClienteModel();
+    this.acompanantes = [];
     this.paqueteselect = new PaqueteModel();
     this.total_price = 0;
     this.pagar_con = 0;
     this.vuelto = 0;
     this.nombre_moneda = '';
 
-    // Limpia los arrays del formulario
     while (this.DetalleReservas.length !== 0) {
       this.DetalleReservas.removeAt(0);
     }
 
-    // Opcional: Puedes resetear el valor de los campos específicos si es necesario
     this.myForm.patchValue({
-      iD_Reserva: null,
-      iD_Cliente: null,
-      iD_Paquete: null,
-      fecha_Reserva: null,
-      numero_Personas: 1,
-      precio_Total: null,
-      estatus: null,
-      observaciones: null,
-      iD_Pago: null,
-      metodo_Pago: null,
-      monto: null,
-      fecha_Pago: null,
-      numero_Transaccion: null
+      iD_Reserva: null, iD_Cliente: null, iD_Paquete: null,
+      fecha_Reserva: null, numero_Personas: 1, precio_Total: null,
+      estatus: null, observaciones: null, iD_Pago: null,
+      metodo_Pago: null, monto: null, fecha_Pago: null, numero_Transaccion: null,
+      pagar_con: null, vuelto: null,
     });
   }
 
+  formatearFechaHora(fecha: any): string {
+    const date = new Date(fecha);
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const anio = date.getFullYear();
+    let hora = date.getHours();
+    const minutos = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hora >= 12 ? 'pm' : 'am';
+    hora = hora % 12;
+    hora = hora ? hora : 12;
+    const horaFormato = String(hora).padStart(2, '0');
+    return `${dia}/${mes}/${anio} ${horaFormato}:${minutos} ${ampm}`;
+  }
 
   realizarReserva(template: TemplateRef<any>) {
+    
     if (!this.clienteSelect.iD_Cliente || !this.paqueteselect.iD_Paquete) {
-      Swal.fire({
-        position: 'center',
-        icon: 'warning',
-        title: 'Por favor, seleccione un cliente y un paquete',
-        showConfirmButton: true,
+      Swal.fire({ position: 'center', icon: 'warning', title: 'Por favor, seleccione un cliente y un paquete', showConfirmButton: true });
+      return;
+    }
+
+    if (this.obtenerAcompanantesFaltantes() > 0) {
+      Swal.fire({ position: 'center', icon: 'warning', title: `Debe seleccionar ${this.obtenerAcompanantesFaltantes()} acompañante(s) más`, showConfirmButton: true });
+      return;
+    }
+
+    if (!this.pagar_con || this.pagar_con < this.total_price) {
+      Swal.fire({ 
+        position: 'center', 
+        icon: 'error', 
+        title: 'Monto insuficiente', 
+        text: 'El monto con el que paga debe ser mayor o igual al precio total.', 
+        showConfirmButton: true 
       });
       return;
     }
 
-    let reserva: any = this.myForm.value;
+    // EXTRAEMOS LOS VALORES SEGUROS DEL FORMULARIO
+    const formValues = this.myForm.value;
+    const ahora = new Date();
+    const fechaFormateada = this.formatearFechaHora(ahora);
 
-    reserva.iD_Cliente = this.clienteSelect.iD_Cliente;
-    reserva.iD_Paquete = this.paqueteselect.iD_Paquete;
-    reserva.fecha_Reserva = this.pipe.transform(Date.now(), 'dd/MM/yyyy');
-    reserva.fecha_Pago = this.pipe.transform(Date.now(), 'dd/MM/yyyy');
-    reserva.numero_Transaccion = '00' && reserva.iD_Reserva;
-    reserva.estatus = 'Reservado';
-    reserva.precio_Total = this.total_price; // Asegurarse de que se utilice el precio total correcto
+    // CONSTRUIMOS EL OBJETO SEGURO, SIN CAMPOS "PAGAR_CON" NI "VUELTO" QUE ALTEREN EL JSON
+    let reservaValida: any = {
+      iD_Reserva: formValues.iD_Reserva || 0,
+      iD_Cliente: this.clienteSelect.iD_Cliente,
+      iD_Paquete: this.paqueteselect.iD_Paquete,
+      fecha_Reserva: fechaFormateada,
+      fecha_Pago: fechaFormateada,
+      numero_Transaccion: '00' + (formValues.iD_Reserva || 0),
+      estatus: 'Reservado',
+      precio_Total: this.total_price,
+      numero_Personas: parseInt(formValues.numero_Personas) || 1,
+      observaciones: formValues.observaciones || '',
+      iD_Pago: formValues.iD_Pago || 0,
+      metodo_Pago: formValues.metodo_Pago || '',
+      monto: formValues.monto || 0,
+      acompanantesIds: this.acompanantes.map((a) => a.iD_Cliente)
+    };
 
-    this._reservasService.create(reserva).subscribe(
+    console.log("Enviando objeto limpio al servicio:", reservaValida);
+
+    this._reservasService.create(reservaValida).subscribe(
       (data: any) => {
-        Swal.fire({
-          position: 'center',
-          icon: 'success',
-          title: 'Reserva Realizada de forma satisfactoría',
-          showConfirmButton: false,
-          timer: 1650,
-        });
         this.miReserva = data;
-        console.log(this.miReserva);
+        this.acompanantesComprobante = [...this.acompanantes];
+
+        // ✅ RESPALDAMOS LOS MONTOS PARA LA BOLETA ANTES DE LIMPIAR
+        this.pagarConComprobante = this.pagar_con;
+        this.vueltoComprobante = this.vuelto;
+
+        Swal.fire({ position: 'center', icon: 'success', title: 'Reserva realizada de forma satisfactoria', showConfirmButton: false, timer: 1650 });
+
+        // Ahora sí podemos limpiar con total seguridad, la boleta ya tiene su copia guardada
+        this.limpiarTablas();
+
+        setTimeout(() => {
+          this.tituloModal = 'COMPROBANTE DE RESERVA';
+          this.openModal(template);
+        }, 1800);
       },
-      (err) => { }
+      (err) => {
+        console.error('Error al crear reserva:', err);
+        Swal.fire({ position: 'center', icon: 'error', title: 'Ocurrió un error al crear la reserva. Revisa la consola.', showConfirmButton: true });
+      }
     );
-
-    setTimeout(() => {
-      this.tituloModal = 'RESERVA';
-      this.openModal(template);
-    }, 2000);
-
-    this.limpiarTablas();
   }
-
 
   listReserva(template: TemplateRef<any>) {
     this.openModal(template);
