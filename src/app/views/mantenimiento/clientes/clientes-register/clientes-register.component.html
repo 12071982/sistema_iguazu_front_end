@@ -1,9 +1,10 @@
 <form [formGroup]="myForm" class="formulario-modal">
+
     <!-- ID CLIENTE (OCULTO) -->
     <div class="row">
         <div class="col-12">
             <div class="form-group">
-                <label hidden for=""><strong>ID CLIENTE</strong></label>
+                <label hidden><strong>ID CLIENTE</strong></label>
                 <input hidden type="number" class="form-control" formControlName="iD_Cliente" readonly>
             </div>
         </div>
@@ -13,20 +14,83 @@
     <div class="row">
         <div class="col-12">
             <div class="form-group">
-                <label hidden for=""><strong>USUARIO</strong></label>
+                <label hidden><strong>USUARIO</strong></label>
                 <input hidden type="number" class="form-control" formControlName="iD_Usuario" readonly>
             </div>
         </div>
     </div>
 
-    <!-- CORREO -->
+    <!-- DNI / PASAPORTE ── ahora al inicio del formulario ───────────────── -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="form-group">
+                <label for="pasaporte"><strong>DNI / PASAPORTE</strong></label>
+
+                <div class="input-group">
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="pasaporte"
+                        formControlName="pasaporte"
+                        placeholder="Ingrese DNI (8 dígitos) o Pasaporte"
+                        (input)="onDNIInput($event)"
+                        maxlength="20">
+
+                    <!-- Spinner mientras consulta -->
+                    <span class="input-group-text bg-white" *ngIf="buscandoDNI">
+                        <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                    </span>
+
+                    <!-- Check verde si encontró -->
+                    <span class="input-group-text bg-success text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                          title="DNI encontrado en RENIEC">
+                        <i class="fas fa-check"></i>
+                    </span>
+
+                    <!-- Advertencia si no encontró -->
+                    <span class="input-group-text bg-warning text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === false"
+                          title="DNI no encontrado">
+                        <i class="fas fa-exclamation"></i>
+                    </span>
+                </div>
+
+                <!-- Mensajes de estado -->
+                <div *ngIf="buscandoDNI" class="text-primary mt-1">
+                    <small>
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        Consultando RENIEC...
+                    </small>
+                </div>
+                <div *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                     class="text-success mt-1">
+                    <small>
+                        <i class="fas fa-check-circle"></i>
+                        Datos encontrados y completados automáticamente
+                    </small>
+                </div>
+                <div *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === false"
+                     class="text-warning mt-1">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        DNI no encontrado — puedes completar los campos manualmente
+                    </small>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CORREO ──────────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="correo"><strong>CORREO</strong></label>
-                <input type="email" class="form-control" id="correo" formControlName="correo"
-                    placeholder="Ingrese Correo">
-                <div class="text-danger mt-2" *ngIf="f['correo']?.invalid && f['correo']?.touched">
+                <input type="email" class="form-control" id="correo"
+                       formControlName="correo" placeholder="Ingrese Correo">
+                <div class="text-danger mt-2"
+                     *ngIf="f['correo']?.invalid && f['correo']?.touched">
                     <small *ngIf="f['correo']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> El correo es requerido
                     </small>
@@ -38,14 +102,22 @@
         </div>
     </div>
 
-    <!-- NOMBRES -->
+    <!-- NOMBRES ──────────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="nombre"><strong>NOMBRES</strong></label>
-                <input type="text" class="form-control" id="nombre" formControlName="nombre"
-                    placeholder="Ingrese Nombres">
-                <div class="text-danger mt-2" *ngIf="f['nombre']?.invalid && f['nombre']?.touched">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="nombre"
+                           formControlName="nombre" placeholder="Ingrese Nombres">
+                    <span class="input-group-text bg-success text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                          title="Completado automáticamente desde RENIEC">
+                        <i class="fas fa-magic"></i>
+                    </span>
+                </div>
+                <div class="text-danger mt-2"
+                     *ngIf="f['nombre']?.invalid && f['nombre']?.touched">
                     <small *ngIf="f['nombre']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> El nombre es requerido
                     </small>
@@ -54,14 +126,22 @@
         </div>
     </div>
 
-    <!-- APELLIDOS -->
+    <!-- APELLIDOS ────────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="apellido"><strong>APELLIDOS</strong></label>
-                <input type="text" class="form-control" id="apellido" formControlName="apellido"
-                    placeholder="Ingrese Apellidos">
-                <div class="text-danger mt-2" *ngIf="f['apellido']?.invalid && f['apellido']?.touched">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="apellido"
+                           formControlName="apellido" placeholder="Ingrese Apellidos">
+                    <span class="input-group-text bg-success text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                          title="Completado automáticamente desde RENIEC">
+                        <i class="fas fa-magic"></i>
+                    </span>
+                </div>
+                <div class="text-danger mt-2"
+                     *ngIf="f['apellido']?.invalid && f['apellido']?.touched">
                     <small *ngIf="f['apellido']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> El apellido es requerido
                     </small>
@@ -70,33 +150,35 @@
         </div>
     </div>
 
-    <!-- TELEFONO -->
+    <!-- TELEFONO ─────────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="telefono"><strong>TELEFONO</strong></label>
-                <input type="text" class="form-control" id="telefono" formControlName="telefono"
-                    placeholder="Ingrese Teléfono">
-                <div class="text-danger mt-2" *ngIf="f['telefono']?.invalid && f['telefono']?.touched">
+                <input type="text" class="form-control" id="telefono"
+                       formControlName="telefono" placeholder="Ingrese Teléfono">
+                <div class="text-danger mt-2"
+                     *ngIf="f['telefono']?.invalid && f['telefono']?.touched">
                     <small *ngIf="f['telefono']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> El teléfono es requerido
                     </small>
                     <small *ngIf="f['telefono']?.errors?.['pattern']">
-                        <i class="fas fa-exclamation-circle"></i> Debe ingresar solo números (9-12 dígitos)
+                        <i class="fas fa-exclamation-circle"></i> Solo números (9-12 dígitos)
                     </small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- DIRECCION -->
+    <!-- DIRECCION ────────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="direccion"><strong>DIRECCION</strong></label>
-                <input type="text" class="form-control" id="direccion" formControlName="direccion"
-                    placeholder="Ingrese Dirección">
-                <div class="text-danger mt-2" *ngIf="f['direccion']?.invalid && f['direccion']?.touched">
+                <input type="text" class="form-control" id="direccion"
+                       formControlName="direccion" placeholder="Ingrese Dirección">
+                <div class="text-danger mt-2"
+                     *ngIf="f['direccion']?.invalid && f['direccion']?.touched">
                     <small *ngIf="f['direccion']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> La dirección es requerida
                     </small>
@@ -105,15 +187,23 @@
         </div>
     </div>
 
-    <!-- FECHA NACIMIENTO -->
+    <!-- FECHA NACIMIENTO ─────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="fecha_Nacimiento"><strong>FECHA NACIMIENTO</strong></label>
-                <input type="date" class="form-control" id="fecha_Nacimiento" formControlName="fecha_Nacimiento"
-                    placeholder="Ingrese Fecha Nacimiento" [max]="getMinDate()" [min]="getMaxDate()">
-
-                <div class="text-danger mt-2" *ngIf="f['fecha_Nacimiento']?.invalid && f['fecha_Nacimiento']?.touched">
+                <div class="input-group">
+                    <input type="date" class="form-control" id="fecha_Nacimiento"
+                           formControlName="fecha_Nacimiento"
+                           [max]="getMinDate()" [min]="getMaxDate()">
+                    <span class="input-group-text bg-success text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                          title="Completado automáticamente desde RENIEC">
+                        <i class="fas fa-magic"></i>
+                    </span>
+                </div>
+                <div class="text-danger mt-2"
+                     *ngIf="f['fecha_Nacimiento']?.invalid && f['fecha_Nacimiento']?.touched">
                     <small *ngIf="f['fecha_Nacimiento']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> La fecha de nacimiento es requerida
                     </small>
@@ -121,11 +211,13 @@
                         <i class="fas fa-exclamation-circle"></i> No puede seleccionar una fecha futura
                     </small>
                     <small *ngIf="f['fecha_Nacimiento']?.errors?.['edadMinima']" class="d-block">
-                        <i class="fas fa-exclamation-circle"></i> Debe ser mayor de {{ EDAD_MINIMA }} años
+                        <i class="fas fa-exclamation-circle"></i>
+                        Debe ser mayor de {{ EDAD_MINIMA }} años
                         (nacido antes de {{ getMinDate() | date:'dd/MM/yyyy' }})
                     </small>
                     <small *ngIf="f['fecha_Nacimiento']?.errors?.['edadMaxima']" class="d-block">
-                        <i class="fas fa-exclamation-circle"></i> No puede ser mayor de {{ EDAD_MAXIMA }} años
+                        <i class="fas fa-exclamation-circle"></i>
+                        No puede ser mayor de {{ EDAD_MAXIMA }} años
                         (nacido después de {{ getMaxDate() | date:'dd/MM/yyyy' }})
                     </small>
                 </div>
@@ -133,19 +225,27 @@
         </div>
     </div>
 
-    <!-- NACIONALIDAD -->
+    <!-- NACIONALIDAD ─────────────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
                 <label for="nacionalidad"><strong>NACIONALIDAD</strong></label>
-                <select class="form-select" id="nacionalidad" formControlName="nacionalidad">
-                    <option value="Peruana">Peruana</option>
-                    <option value="Venezolana">Venezolana</option>
-                    <option value="Boliviana">Boliviana</option>
-                    <option value="Chilena">Chilena</option>
-                    <option value="Otros">Otros</option>
-                </select>
-                <div class="text-danger mt-2" *ngIf="f['nacionalidad']?.invalid && f['nacionalidad']?.touched">
+                <div class="input-group">
+                    <select class="form-select" id="nacionalidad" formControlName="nacionalidad">
+                        <option value="Peruana">Peruana</option>
+                        <option value="Venezolana">Venezolana</option>
+                        <option value="Boliviana">Boliviana</option>
+                        <option value="Chilena">Chilena</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                    <span class="input-group-text bg-success text-white"
+                          *ngIf="!buscandoDNI && dniBuscado && dniEncontrado === true"
+                          title="Completado automáticamente desde RENIEC">
+                        <i class="fas fa-magic"></i>
+                    </span>
+                </div>
+                <div class="text-danger mt-2"
+                     *ngIf="f['nacionalidad']?.invalid && f['nacionalidad']?.touched">
                     <small *ngIf="f['nacionalidad']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> La nacionalidad es requerida
                     </small>
@@ -154,16 +254,16 @@
         </div>
     </div>
 
-    <!-- INPUT PARA "OTROS" NACIONALIDAD -->
+    <!-- ESPECIFICAR NACIONALIDAD (solo si elige "Otros") ─────────────────── -->
     <div class="row mt-3" *ngIf="mostrarInputOtros">
         <div class="col-12">
             <div class="form-group">
                 <label for="nacionalidadOtros"><strong>ESPECIFICAR NACIONALIDAD</strong></label>
-                <input type="text" class="form-control" id="nacionalidadOtros" formControlName="nacionalidadOtros"
-                    placeholder="Ej: Colombiana, Ecuatoriana, etc.">
-
+                <input type="text" class="form-control" id="nacionalidadOtros"
+                       formControlName="nacionalidadOtros"
+                       placeholder="Ej: Colombiana, Ecuatoriana, etc.">
                 <div class="text-danger mt-2"
-                    *ngIf="f['nacionalidadOtros']?.invalid && f['nacionalidadOtros']?.touched">
+                     *ngIf="f['nacionalidadOtros']?.invalid && f['nacionalidadOtros']?.touched">
                     <small *ngIf="f['nacionalidadOtros']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> Por favor especifica la nacionalidad
                     </small>
@@ -172,18 +272,7 @@
         </div>
     </div>
 
-    <!-- PASAPORTE -->
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="form-group">
-                <label for="pasaporte"><strong>PASAPORTE</strong></label>
-                <input type="text" class="form-control" id="pasaporte" formControlName="pasaporte"
-                    placeholder="Ingrese Pasaporte (opcional)">
-            </div>
-        </div>
-    </div>
-
-    <!-- FRECUENCIA VIAJERO -->
+    <!-- FRECUENCIA VIAJERO ───────────────────────────────────────────────── -->
     <div class="row mt-3">
         <div class="col-12">
             <div class="form-group">
@@ -194,7 +283,7 @@
                     <option value="Baja">Baja</option>
                 </select>
                 <div class="text-danger mt-2"
-                    *ngIf="f['frecuencia_Viajero']?.invalid && f['frecuencia_Viajero']?.touched">
+                     *ngIf="f['frecuencia_Viajero']?.invalid && f['frecuencia_Viajero']?.touched">
                     <small *ngIf="f['frecuencia_Viajero']?.errors?.['required']">
                         <i class="fas fa-exclamation-circle"></i> La frecuencia de viajero es requerida
                     </small>
@@ -203,15 +292,20 @@
         </div>
     </div>
 
-    <!-- BOTONES -->
+    <!-- BOTONES ──────────────────────────────────────────────────────────── -->
     <div class="row mt-4">
         <div class="col-12">
-            <button (click)="save()" [disabled]="myForm.invalid" class="btn btn-primary btn-sm float-end mr-2 ml-2">
+            <button (click)="save()"
+                    [disabled]="myForm.invalid || buscandoDNI"
+                    class="btn btn-primary btn-sm float-end mr-2 ml-2">
                 <i class="fas fa-save"></i> Guardar
             </button>
-            <button (click)="closeModal(false)" class="btn btn-danger btn-sm float-end mr-2 ml-2">
+            <button (click)="closeModal(false)"
+                    [disabled]="buscandoDNI"
+                    class="btn btn-danger btn-sm float-end mr-2 ml-2">
                 <i class="fas fa-ban"></i> Cancelar
             </button>
         </div>
     </div>
+
 </form>

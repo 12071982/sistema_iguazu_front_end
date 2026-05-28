@@ -9,5 +9,7 @@ export const const_uri = {
     mant_proveedor: `${environment.uri_back_end}proveedor/`,
     mant_destino: `${environment.uri_back_end}destino/`,
     mant_usuario: `${environment.uri_back_end}usuario/`,
-    mant_rol: `${environment.uri_back_end}role/`
+    mant_rol: `${environment.uri_back_end}role/`,
+    mant_temporada: `${environment.uri_back_end}temporada/`,
+    mant_paquete_temporada: `${environment.uri_back_end}paqueteTemporada/`
 }

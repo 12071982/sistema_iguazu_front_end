@@ -1,6 +1,5 @@
 import { DestinoModel } from './destino.model';
 
-
 export class PaqueteModel {
   iD_Paquete: number;
   iD_Destino: number;
@@ -14,8 +13,8 @@ export class PaqueteModel {
   inclusiones: string;
   exclusiones: string;
   imagen: string | null;
-  
   destino?: DestinoModel;
+  PaqueteTemporadas?: any[];
 
   constructor() {
     this.iD_Paquete = 0;
@@ -30,7 +29,6 @@ export class PaqueteModel {
     this.inclusiones = '';
     this.exclusiones = '';
     this.imagen = '';
-
     this.destino = new DestinoModel();
   }
 }

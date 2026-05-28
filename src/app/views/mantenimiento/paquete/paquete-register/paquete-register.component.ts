@@ -1,11 +1,16 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { DatePipe } from '@angular/common';
+import { Observable, map, startWith } from 'rxjs';
+import Swal from 'sweetalert2';
+
 import { PaqueteModel } from 'src/app/models/paquete.model';
 import { PaqueteService } from 'src/app/service/paquete.service';
 import { DestinoService } from 'src/app/service/destino.service';
-import { Observable, map, startWith } from 'rxjs';
-import Swal from 'sweetalert2';
-import { DatePipe } from '@angular/common';
+import { TemporadaService } from 'src/app/service/temporada.service';
+import { PaqueteTemporadaService } from 'src/app/service/paquete-temporada.service';
+import { TemporadaModel } from 'src/app/models/temporada.model';
+import { PaqueteTemporadaModel } from 'src/app/models/paquete-temporada.model';
 
 @Component({
   selector: 'app-paquete-register',
@@ -24,10 +29,14 @@ export class PaqueteRegisterComponent implements OnInit {
   mostrarCampoDuracionPersonalizada: boolean = false;
   warningShown = false;
 
+  temporadas: TemporadaModel[] = [];
+
   constructor(
     private _destinoservice: DestinoService,
-    private fb: FormBuilder,
-    private _paqueteService: PaqueteService
+    private _paqueteService: PaqueteService,
+    private _temporadaService: TemporadaService,
+    private _paqueteTemporadaService: PaqueteTemporadaService,
+    private fb: FormBuilder
   ) {
     this.myForm = this.fb.group({
       iD_Paquete: [null],
@@ -36,13 +45,14 @@ export class PaqueteRegisterComponent implements OnInit {
       nombre: [null, Validators.required],
       descripcion: [null, Validators.required],
       duracion: [null, Validators.required],
-      duracionPersonalizada: new FormControl(null),
-      precio_Base: [null],
+      duracionPersonalizada: [null],
+      precio_Base: [null, Validators.required],
       tipo: [null, Validators.required],
       fecha_Inicio: [null, Validators.required],
       fecha_Fin: [null, Validators.required],
       inclusiones: [null],
-      exclusiones: [null]
+      exclusiones: [null],
+      iD_Temporada: ['', Validators.required]
     });
   }
 
@@ -51,6 +61,9 @@ export class PaqueteRegisterComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.cargarTemporadas();
+
+    // Patch valores del paquete recibido
     this.myForm.patchValue({
       iD_Paquete: this.paquete.iD_Paquete,
       iD_Destino: this.paquete.iD_Destino,
@@ -67,15 +80,39 @@ export class PaqueteRegisterComponent implements OnInit {
 
     this._destinoservice.getAll().subscribe(data => {
       this.destinos = data;
-
       const actual = this.destinos.find(d => d.iD_Destino === this.paquete.iD_Destino);
       if (actual) this.destinoCtrl.setValue(actual.nombre);
-
       this.destinosFiltrados$ = this.destinoCtrl.valueChanges.pipe(
         startWith(''),
         map(value => this.filtrarDestinos(value))
       );
     });
+
+    // Si es edición, cargar relación paquete-temporada existente
+    if (this.paquete.iD_Paquete && this.paquete.iD_Paquete !== 0) {
+      this.cargarRelacionExistente();
+    }
+  }
+
+  cargarTemporadas(): void {
+    this._temporadaService.getAll().subscribe({
+      next: (data) => {
+        this.temporadas = data;
+      },
+      error: (err) => console.error('Error al cargar temporadas', err)
+    });
+  }
+
+  cargarRelacionExistente(): void {
+    // Si el paquete ya trae PaqueteTemporadas cargado desde el backend
+    if (this.paquete.PaqueteTemporadas && this.paquete.PaqueteTemporadas.length > 0) {
+      const temporadaRelacionada = this.paquete.PaqueteTemporadas[0];
+      console.log('Temporada encontrada:', temporadaRelacionada.iD_Temporada);
+      
+      this.myForm.patchValue({
+        iD_Temporada: temporadaRelacionada.iD_Temporada
+      });
+    }
   }
 
   filtrarDestinos(valor: string): any[] {
@@ -89,6 +126,16 @@ export class PaqueteRegisterComponent implements OnInit {
       this.myForm.patchValue({ iD_Destino: destinoSeleccionado.iD_Destino });
     } else {
       this.myForm.patchValue({ iD_Destino: null });
+    }
+  }
+
+  onTemporadaChange(event: any): void {
+    const idTemporada = +event.target.value;
+    const temporadaSeleccionada = this.temporadas.find(t => t.iD_Temporada === idTemporada);
+    if (temporadaSeleccionada) {
+      this.myForm.patchValue({ precio_Base: temporadaSeleccionada.precioBase });
+    } else {
+      this.myForm.patchValue({ precio_Base: null });
     }
   }
 
@@ -126,21 +173,64 @@ export class PaqueteRegisterComponent implements OnInit {
     }
 
     this.actualizarDuracionPersonalizada();
-    const paquete = { ...this.myForm.getRawValue() };
-    paquete.fecha_Inicio = this.formatDateForServer(paquete.fecha_Inicio);
-    paquete.fecha_Fin = this.formatDateForServer(paquete.fecha_Fin);
+    const formValue = { ...this.myForm.getRawValue() };
 
-    if (!paquete.iD_Paquete) {
-      this._paqueteService.create(paquete).subscribe(() => {
-        Swal.fire('Registrado', 'Paquete creado con éxito', 'success');
-        this.closeModalEmmit.emit(true);
-      });
-    } else {
-      this._paqueteService.update(paquete).subscribe(() => {
-        Swal.fire('Actualizado', 'Paquete actualizado con éxito', 'success');
-        this.closeModalEmmit.emit(true);
-      });
-    }
+    const paqueteData: PaqueteModel = {
+      iD_Paquete: formValue.iD_Paquete,
+      iD_Destino: formValue.iD_Destino,
+      nombre: formValue.nombre,
+      descripcion: formValue.descripcion,
+      duracion: formValue.duracion,
+      precio_Base: formValue.precio_Base,
+      tipo: formValue.tipo,
+      fecha_Inicio: this.formatDateForServer(formValue.fecha_Inicio),
+      fecha_Fin: this.formatDateForServer(formValue.fecha_Fin),
+      inclusiones: formValue.inclusiones,
+      exclusiones: formValue.exclusiones,
+      imagen: this.paquete.imagen || null,
+      destino: undefined
+    };
+
+    const idTemporada = formValue.iD_Temporada;
+
+    const accion = !paqueteData.iD_Paquete || paqueteData.iD_Paquete === 0
+      ? this._paqueteService.create(paqueteData)
+      : this._paqueteService.update(paqueteData);
+
+    accion.subscribe({
+      next: (paqueteGuardado) => {
+        if (idTemporada) {
+          const relacion: PaqueteTemporadaModel = {
+            iD_PaqueteTemporada: 0,
+            iD_Paquete: paqueteGuardado.iD_Paquete,
+            iD_Temporada: idTemporada
+          };
+          this._paqueteTemporadaService.create(relacion).subscribe({
+            next: () => {
+              Swal.fire('Éxito', 'Paquete y temporada guardados correctamente', 'success');
+              this.closeModalEmmit.emit(true);
+            },
+            error: (err) => {
+              console.error('Error al guardar relación temporada:', err);
+              Swal.fire('Error', 'El paquete se guardó, pero no se pudo asociar la temporada', 'error');
+              this.closeModalEmmit.emit(true);
+            }
+          });
+        } else {
+          Swal.fire('Éxito', 'Paquete guardado sin temporada', 'success');
+          this.closeModalEmmit.emit(true);
+        }
+      },
+      error: (err) => {
+        console.error('Error al guardar paquete:', err);
+        if (err.error?.errors) {
+          const mensajes = Object.values(err.error.errors).flat().join('\n');
+          Swal.fire('Error de validación', mensajes, 'error');
+        } else {
+          Swal.fire('Error', 'No se pudo guardar el paquete', 'error');
+        }
+      }
+    });
   }
 
   closeModal(res: boolean) {

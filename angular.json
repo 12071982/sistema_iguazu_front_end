@@ -37,10 +37,10 @@
               "src/assets"
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/purple-green.css"
-              ,"./node_modules/bootstrap/dist/css/bootstrap.min.css"
-              ,"./node_modules/@fortawesome/fontawesome-free/css/all.min.css"
-              ,"./node_modules/startbootstrap-sb-admin/dist/css/styles.css",
+              "./node_modules/@angular/material/prebuilt-themes/purple-green.css",
+              "./node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "./node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "./node_modules/startbootstrap-sb-admin/dist/css/styles.css",
               "src/styles.css"
             ],
             "scripts": [
@@ -84,6 +84,10 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "tu-app:build",
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "browserTarget": "prueba_2:build:production"
