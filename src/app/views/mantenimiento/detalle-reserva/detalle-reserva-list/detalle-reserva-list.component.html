@@ -16,10 +16,13 @@
         <th>OBSERVACIONES</th>
         <th>FECHA RESERVA</th>
         <th>ESTADO</th>
+        <th style="text-align: center;">ACCIÓN</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let d of reserva.slice().reverse() | paginate: { itemsPerPage: cantidadRegistros, currentPage: page }; let i = index; trackBy: trackById">
+      <tr
+        *ngFor="let d of reserva.slice().reverse() | paginate: { itemsPerPage: cantidadRegistros, currentPage: page }; let i = index; trackBy: trackById"
+      >
         <td>{{ (page - 1) * cantidadRegistros + i + 1 }}</td>
         <td>{{ clienteTipoMap[d.iD_Cliente] }}</td>
         <td>{{ d.numero_Personas }}</td>
@@ -28,17 +31,75 @@
         <td>{{ d.precio_Total }} {{ destino_monedaTipoMap.get(d.paquete?.iD_Destino ?? 0) }}</td>
         <td>{{ d.observaciones }}</td>
         <td>{{ d.fecha_Reserva }}</td>
-        <td>{{ d.estatus }}</td>
+
+        <!-- ESTADO con badge de color -->
+        <td style="text-align: center;">
+          <span
+            class="badge"
+            [ngClass]="{
+              'bg-success':  d.estatus === 'Pagado',
+              'bg-danger':   d.estatus === 'Cancelado',
+              'bg-warning text-dark': d.estatus === 'Pendiente'
+            }"
+          >
+            {{ d.estatus }}
+          </span>
+        </td>
+
+        <!-- ACCIÓN: botón lápiz + select inline -->
+        <td style="text-align: center; min-width: 130px;">
+          <ng-container *ngIf="editandoEstatusId !== d.iD_Reserva; else editMode">
+            <button
+              class="btn btn-sm btn-warning"
+              title="Cambiar estado"
+              (click)="abrirEditarEstatus(d.iD_Reserva)"
+              style="width: 30px;"
+            >
+              <i class="fas fa-edit"></i>
+            </button>
+          </ng-container>
+
+          <ng-template #editMode>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <select
+                class="form-select form-select-sm"
+                style="font-size: 0.75rem; padding: 2px 4px;"
+                [value]="d.estatus"
+                (change)="guardarEstatus(d, $any($event.target).value)"
+              >
+                <option *ngFor="let op of estatusOpciones" [value]="op">{{ op }}</option>
+              </select>
+              <button
+                class="btn btn-sm btn-secondary"
+                title="Cancelar"
+                (click)="editandoEstatusId = null"
+                style="width: 28px; padding: 2px 4px;"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </ng-template>
+        </td>
       </tr>
     </tbody>
   </table>
 </div>
 
-<pagination-controls (pageChange)="page = $event" previousLabel="Anterior" nextLabel="Siguiente" style="position: fixed; bottom: 0;"></pagination-controls>
+<pagination-controls
+  (pageChange)="page = $event"
+  previousLabel="Anterior"
+  nextLabel="Siguiente"
+  style="position: fixed; bottom: 0;"
+></pagination-controls>
 
 <div style="position: fixed; bottom: 20px; right: 20px;">
   <label for="cantidadRegistros" style="padding-right: 5px;">Mostrar registros:</label>
-  <select id="cantidadRegistros" [(ngModel)]="cantidadRegistros" (change)="onRegistrosChange()" style="padding-right: 5px;">
+  <select
+    id="cantidadRegistros"
+    [(ngModel)]="cantidadRegistros"
+    (change)="onRegistrosChange()"
+    style="padding-right: 5px;"
+  >
     <option value="10">10</option>
     <option value="20">20</option>
     <option value="50">50</option>

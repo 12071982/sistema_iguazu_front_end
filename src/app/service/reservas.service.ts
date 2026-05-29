@@ -30,6 +30,9 @@ export class ReservasService {
     return this._http.put<ReservasModel>(this.url, reservas)
   }
 
+  updateEstatus(reserva: ReservasModel): Observable<ReservasModel> {
+    return this._http.put<ReservasModel>(this.url, reserva);
+  }
 
   delete(id: number): Observable<number> {
     return this._http.delete<number>(`${this.url}${id}`);

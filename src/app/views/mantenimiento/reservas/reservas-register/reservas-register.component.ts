@@ -180,7 +180,8 @@ export class ReservasRegisterComponent implements OnInit {
     this.filtroPaquete = '';
     this.filtro = '';
     this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
-      this.clienteList = data;
+      // ✅ Orden descendente por ID (último registrado primero)
+      this.clienteList = data.sort((a, b) => b.iD_Cliente - a.iD_Cliente);
       this.openModal(template);
     });
   }
@@ -196,8 +197,10 @@ export class ReservasRegisterComponent implements OnInit {
   openListAcompanantes(template: TemplateRef<any>) {
     this.filtro = '';
     this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
-      // Guardamos la lista completa filtrando al titular y los ya seleccionados
-      this.acompanantesList = data.filter(
+      // ✅ Orden descendente por ID (último registrado primero)
+      const clientesOrdenados = data.sort((a, b) => b.iD_Cliente - a.iD_Cliente);
+      // Filtramos para excluir titular y los ya agregados
+      this.acompanantesList = clientesOrdenados.filter(
         (c) =>
           c.iD_Cliente !== this.clienteSelect.iD_Cliente &&
           !this.acompanantes.some((a) => a.iD_Cliente === c.iD_Cliente)
@@ -430,7 +433,7 @@ export class ReservasRegisterComponent implements OnInit {
       fecha_Reserva: fechaFormateada,
       fecha_Pago: fechaFormateada,
       numero_Transaccion: '00' + (formValues.iD_Reserva || 0),
-      estatus: 'Reservado',
+      estatus: 'Pagado',
       precio_Total: this.total_price,
       numero_Personas: parseInt(formValues.numero_Personas) || 1,
       observaciones: formValues.observaciones || '',

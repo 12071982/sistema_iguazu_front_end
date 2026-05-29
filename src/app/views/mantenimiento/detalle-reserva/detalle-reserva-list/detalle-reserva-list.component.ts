@@ -13,6 +13,7 @@ import { PaqueteModel } from 'src/app/models/paquete.model';
 import { ReservasModel } from 'src/app/models/reservas.model';
 import { Observable, forkJoin } from 'rxjs';
 import { UsuarioModel } from 'src/app/models/usuario.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-detalle-reserva-list',
@@ -29,12 +30,9 @@ export class detalleReservaListComponent implements OnInit {
   modalRef?: BsModalRef;
   reserva: ReservasModel[] = [];
 
-  // RESERVA
   detalleReservaSelected: DetalleReservaModel = new DetalleReservaModel();
-  // CLIENTE
   clienteSelect: ClienteModel = new ClienteModel();
   clienteList: ClienteModel[] = [];
-  // PAQUETE
   paquete: PaqueteModel[] = [];
   paqueteMap: Map<number, PaqueteModel> = new Map();
   paqueteselect: PaqueteModel = new PaqueteModel();
@@ -42,14 +40,16 @@ export class detalleReservaListComponent implements OnInit {
   destinoTiplist: any = [];
   destino_nombreTipoMap: Map<number, string> = new Map();
   destino_monedaTipoMap: Map<number, string> = new Map();
-  // USUARIO
   usuario: any = {};
   usuarioList: UsuarioModel[] = [];
-  // CLIENTE
   cliente: any = {};
-
   tituloModal: string = "";
   detalleExport: any = [];
+
+  // ── NUEVO: control de edición de estado inline ──
+  editandoEstatusId: number | null = null;
+  estatusOpciones: string[] = ['Pendiente', 'Pagado', 'Cancelado'];
+  // ────────────────────────────────────────────────
 
   headerColumns: any = [
     { header: 'ID DETALLE RESERVA', datakey: 'iD_Pago' },
@@ -99,9 +99,7 @@ export class detalleReservaListComponent implements OnInit {
 
       reservas.forEach(reserva => {
         const paquete = this.paqueteMap.get(reserva.iD_Paquete);
-        if (paquete) {
-          reserva.paquete = paquete;
-        }
+        if (paquete) reserva.paquete = paquete;
       });
       this.reserva = reservas;
 
@@ -111,13 +109,9 @@ export class detalleReservaListComponent implements OnInit {
       });
 
       this.usuarioList = usuarios;
-      console.log('Usuarios cargados:', usuarios); // Añadir este log
       usuarios.forEach(usuario => {
-        console.log(`Mapeando usuario ${usuario.iD_Usuario}: ${usuario.nombre} ${usuario.apellido}`); // Añadir este log
         this.usuarioTipoMap[usuario.iD_Usuario] = `${usuario.nombre} ${usuario.apellido}`;
       });
-
-      console.log('usuarioTipoMap:', this.usuarioTipoMap); // Añadir este log
 
       this.destinoTiplist = destinos;
       destinos.forEach(destino => {
@@ -128,6 +122,47 @@ export class detalleReservaListComponent implements OnInit {
       this.cdRef.detectChanges();
     }, err => {
       console.error(err);
+    });
+  }
+
+  // ── NUEVO: abrir/cerrar el select inline de estado ──
+  abrirEditarEstatus(id: number) {
+    this.editandoEstatusId = this.editandoEstatusId === id ? null : id;
+  }
+
+  guardarEstatus(reservaItem: ReservasModel, nuevoEstatus: string) {
+    if (reservaItem.estatus === nuevoEstatus) {
+      this.editandoEstatusId = null;
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Cambiar estado?',
+      text: `El estado pasará a: ${nuevoEstatus}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        const reservaActualizada: ReservasModel = { ...reservaItem, estatus: nuevoEstatus };
+
+        this._reservasService.updateEstatus(reservaActualizada).subscribe(
+          () => {
+            reservaItem.estatus = nuevoEstatus;
+            Swal.fire('Actualizado', 'El estado fue cambiado correctamente.', 'success');
+            this.editandoEstatusId = null;
+          },
+          (err: any) => {                    // ← tipado explícito
+            console.error(err);
+            Swal.fire('Error', 'No se pudo actualizar el estado.', 'error');
+          }
+        );
+      } else {
+        this.editandoEstatusId = null;
+      }
     });
   }
 
@@ -148,47 +183,35 @@ export class detalleReservaListComponent implements OnInit {
   }
 
   recibeCloseModal(res: boolean) {
-    if (res) {
-      this.loadData();
-    }
+    if (res) this.loadData();
     this.modalRef?.hide();
   }
 
   modalDelete(detalleReserva: DetalleReservaModel) {
-    let res = confirm("¿Está seguro de eliminar el registro?");
-
-    if (res) {
-      this._detalleReservaervice.delete(detalleReserva.iD_Pago).subscribe(
-        (data: number) => {
-          console.log(data);
-          alert("Registro eliminado de forma satisfactoria");
-          this.loadData();
-        },
-        err => {
-          console.error(err);
-        }
-      );
-    }
-  }
-
-  PrintElem() {
-    const mywindow: any = window.open('', 'PRINT', 'height=400,width=600');
-    const html = document.getElementById("app2")?.innerHTML;
-    mywindow.document.write('<html><head><title>' + document.title + '</title>');
-    mywindow.document.write('</head><body>');
-    mywindow.document.write('<h1>' + document.title + '</h1>');
-    mywindow.document.write(html);
-    mywindow.document.write('</body></html>');
-
-    mywindow.document.close(); // necessary for IE >= 10
-    mywindow.focus(); // necessary for IE >= 10
-
-    mywindow.print();
+    Swal.fire({
+      title: '¿Está seguro de eliminar el registro?',
+      text: "¡No podrás revertir esto!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, bórralo!'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this._detalleReservaervice.delete(detalleReserva.iD_Pago).subscribe(
+          (data: number) => {
+            Swal.fire('Eliminado!', 'Registro eliminado de forma satisfactoria.', 'success');
+            this.loadData();
+          },
+          err => console.error(err)
+        );
+      }
+    });
   }
 
   onRegistrosChange() {
-    this.page = 1; // Reinicia la página actual a 1
-    this.loadData(); // Actualiza la lista de clientes según la cantidad seleccionada
+    this.page = 1;
+    this.loadData();
   }
 
   trackById(index: number, item: any): number {

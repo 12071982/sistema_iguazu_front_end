@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { const_uri } from '../constantes/const_uri';
 import { DetalleReservaModel } from '../models/detalleReservas.model';
 import { SesionService } from './sesion.service';
+import { ReservasModel } from '../models/reservas.model';
 
 @Injectable({
   providedIn: 'root'

@@ -39,8 +39,8 @@
     "startbootstrap-sb-admin": "^7.0.4",
     "sweetalert2": "^11.4.4",
     "tslib": "^2.3.0",
-    "xlsx": "^0.18.5",
     "xlsx-import": "^2.4.4",
+    "xlsx-js-style": "^1.2.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
