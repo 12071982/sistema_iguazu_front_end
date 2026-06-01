@@ -1,15 +1,129 @@
-<div class="container-img">
-  <img src="../../../../assets/imagenes/dashboard1.jpg" alt="Imagen 1">
-  <img src="../../../../assets/imagenes/dashboard.jpg" alt="Imagen 2">
-  <img src="../../../../assets/imagenes/dashboard2.jpg" alt="Imagen 3">
-</div>
-
+<!-- Reloj -->
 <div class="clock-container" style="width: 120px; height: 30px;">
   <div id="clock">
     {{currentHours < 10 ? "0" + currentHours : currentHours}}:{{currentMinutes < 10 ? "0" + currentMinutes : currentMinutes}}:{{currentSeconds < 10 ? "0" + currentSeconds : currentSeconds}} {{am_pm}}
   </div>
 </div>
 
+<!-- Filtro de fechas + botones -->
+<div class="container mt-3">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="input-group input-group-sm" style="width:auto;">
+        <span class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></span>
+        <input type="date" class="form-control form-control-sm"
+               [value]="fechaInicio" (change)="fechaInicio = $any($event.target).value"
+               [min]="fechaMinimaStr" [max]="fechaMaximaStr">
+      </div>
+      <span class="text-muted">—</span>
+      <div class="input-group input-group-sm" style="width:auto;">
+        <span class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></span>
+        <input type="date" class="form-control form-control-sm"
+               [value]="fechaFin" (change)="fechaFin = $any($event.target).value"
+               [min]="fechaMinimaStr" [max]="fechaMaximaStr">
+      </div>
+      <small class="text-muted ms-1" *ngIf="fechaMinimaGlobal && fechaMaximaGlobal">
+        <i class="fas fa-info-circle"></i> {{ fechaMinimaGlobal | date:'dd/MM/yyyy' }} – {{ fechaMaximaGlobal | date:'dd/MM/yyyy' }}
+      </small>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary" (click)="aplicarFiltro()" [disabled]="!fechasValidas()">
+        <i class="fas fa-filter"></i> Filtrar
+      </button>
+      <button class="btn btn-sm btn-success" (click)="exportarReportePaquetes()" [disabled]="!fechasValidas()">
+        <i class="fas fa-file-excel"></i> Reporte
+      </button>
+    </div>
+  </div>
+  <hr class="mt-2 mb-0">
+</div>
 
+<!-- KPI Cards (compactos) -->
+<div class="container mt-3">
+  <div class="row g-2">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-primary">
+        <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="kpi-value">{{ totalReservas }}</div>
+        <div class="kpi-label">Reservas</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-success">
+        <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="kpi-value">{{ totalIngresos | number:'1.2-2' }}</div>
+        <div class="kpi-label">Ingresos totales</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-warning">
+        <div class="kpi-icon"><i class="fas fa-box-open"></i></div>
+        <div class="kpi-value">{{ topPaquetes[0]?.nombre || '—' }}</div>
+        <div class="kpi-label">Paquete #1</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-info">
+        <div class="kpi-icon"><i class="fas fa-map-marker-alt"></i></div>
+        <div class="kpi-value">{{ topDestinos[0]?.nombre || '—' }}</div>
+        <div class="kpi-label">Destino #1</div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- Fila 1: Top Paquetes | Top Destinos -->
+<div class="container mt-3">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="chart-card">
+        <div class="chart-card-header"><i class="fas fa-box-open me-2"></i>Top Paquetes</div>
+        <div class="chart-card-body" style="height:240px;">
+          <canvas id="chartTopPaquetes"></canvas>
+          <div class="no-data" *ngIf="topPaquetes.length === 0"><i class="fas fa-chart-bar"></i><br>Sin datos</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="chart-card">
+        <div class="chart-card-header"><i class="fas fa-globe-americas me-2"></i>Top Destinos</div>
+        <div class="chart-card-body" style="height:240px;">
+          <canvas id="chartTopDestinos"></canvas>
+          <div class="no-data" *ngIf="topDestinos.length === 0"><i class="fas fa-chart-pie"></i><br>Sin datos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- Fila 2: Reservas por estado | Personas por paquete -->
+<div class="container mt-3">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="chart-card">
+        <div class="chart-card-header"><i class="fas fa-tasks me-2"></i>Reservas por estado</div>
+        <div class="chart-card-body" style="height:240px;">
+          <canvas id="chartEstados"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="chart-card">
+        <div class="chart-card-header"><i class="fas fa-users me-2"></i>Personas por paquete</div>
+        <div class="chart-card-body" style="height:240px;">
+          <canvas id="chartPersonas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fila 3: Tendencia mensual -->
+<div class="container mt-3 mb-4">
+  <div class="chart-card">
+    <div class="chart-card-header"><i class="fas fa-chart-line me-2"></i>Tendencia mensual</div>
+    <div class="chart-card-body" style="height:220px;">
+      <canvas id="chartTendencia"></canvas>
+    </div>
+  </div>
+</div>

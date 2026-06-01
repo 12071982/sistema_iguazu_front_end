@@ -1,0 +1,8 @@
+/* Sidenav footer mejorado */
+.sb-sidenav-footer {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sb-sidenav-footer .fa-user-circle {
+  font-size: 1.8rem;
+}

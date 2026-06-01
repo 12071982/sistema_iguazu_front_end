@@ -1,60 +1,117 @@
+/* Imágenes hero */
 .container-img {
-    display: flex;  /* Activa Flexbox, que por defecto es horizontal */
-    height: 500px;  /* Altura fija para todas las imágenes */
-    width: 100%;    /* Asume el ancho total de la pantalla */
+  display: flex;
+  height: 500px;
+  width: 100%;
 }
-  
 .container-img img {
-flex-grow: 1;   /* Permite que cada imagen crezca para llenar el espacio disponible */
-object-fit: cover; /* Asegura que las imágenes cubran completamente su espacio sin deformarse */
-width: 50%;   /* Ajusta automáticamente el ancho para mantener la relación de aspecto */
+  flex-grow: 1;
+  object-fit: cover;
+  width: 50%;
 }
-  
-.logo{
+.logo {
   width: auto;
   height: 100px;
 }
 
 /* Reloj */
 .clock-container {
-    position: fixed;
-    top: 6px;
-    right: 20px;
-    width: 240px;
-    height: 80px;
-    background: linear-gradient(to top, #212529, #021b79);
-    color: #fff;
-    font-size: 40px;
-    font-weight: bold;
-    font-family: 'Montserrat', sans-serif;
-    display: flex;
-    align-items: center; /* Asegura centrado vertical */
-    justify-content: center; /* Asegura centrado horizontal */
-    border-radius: 10px;
-    box-shadow: 0px 0px 10px #ccc;
-    animation: clock-animation 1s ease-in-out infinite;
-    padding: 0; /* Asegura que no haya padding interfiriendo con la alineación */
-    margin: 0; /* Asegura que no haya márgenes interfiriendo */
+  position: fixed;
+  top: 6px;
+  right: 20px;
+  width: 120px;
+  height: 30px;
+  background: linear-gradient(to top, #212529, #021b79);
+  color: #fff;
+  font-size: 15px;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  z-index: 1050;
 }
-
 #clock {
-    font-size: 15px;
-    display: flex;
-    align-items: center; /* Asegura centrado vertical dentro del div #clock */
-    justify-content: center; /* Asegura centrado horizontal */
-    width: 100%; /* Asegura que ocupe todo el ancho del contenedor padre */
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
+/* KPI Cards (compactas) */
+.kpi-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  border-left: 4px solid transparent;
+  transition: transform 0.15s;
+}
+.kpi-card:hover { transform: translateY(-2px); }
+.kpi-primary { border-color: #2563EB; }
+.kpi-success { border-color: #16A34A; }
+.kpi-warning { border-color: #F59E0B; }
+.kpi-info    { border-color: #0891B2; }
+.kpi-icon { font-size: 1.1rem; opacity: 0.7; }
+.kpi-primary .kpi-icon { color: #2563EB; }
+.kpi-success .kpi-icon { color: #16A34A; }
+.kpi-warning .kpi-icon { color: #F59E0B; }
+.kpi-info    .kpi-icon { color: #0891B2; }
+.kpi-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  word-break: break-word;
+}
+.kpi-label {
+  font-size: 0.7rem;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
 
+/* Chart Cards */
+.chart-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+.chart-card-header {
+  background: #1F2937;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.chart-card-body {
+  padding: 12px;
+  position: relative;
+}
+canvas { max-height: 100%; }
+.no-data {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9CA3AF;
+  font-size: 0.8rem;
+  gap: 6px;
+}
+.no-data i { font-size: 1.6rem; opacity: 0.4; }
 
-/* @keyframes clock-animation {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-    }
-} */
+@media (max-width: 576px) {
+  .container-img { height: 200px; }
+  .kpi-value { font-size: 0.95rem; }
+}

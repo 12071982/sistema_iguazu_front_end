@@ -3,103 +3,72 @@
     <div class="sb-sidenav-menu">
       <div class="nav">
         <div class="sb-sidenav-menu-heading">Pagina Principal</div>
-        <a routerLink="home" class="nav-link" href="charts.html">
-          <div class="sb-nav-link-icon">
-            <i class="fas fa-home"></i>
-          </div>
-          Inicio  
+        <a routerLink="home" class="nav-link">
+          <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+          Inicio
         </a>
+
         <div class="sb-sidenav-menu-heading">Datos</div>
-        
-        <a routerLink="mant/paquete" class="nav-link" href="charts.html">
+        <a routerLink="mant/paquete" class="nav-link">
           <div class="sb-nav-link-icon"><i class="fas fa-store"></i></div>
           Paquetes
         </a>
-
-        <a routerLink="mant/cliente" class="nav-link" href="charts.html">
+        <a routerLink="mant/cliente" class="nav-link">
           <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
           Clientes
         </a>
 
-        <a
-          class="nav-link collapsed"
-          href="#"
-          data-bs-toggle="collapse"
-          data-bs-target="#collapsePages"
-          aria-expanded="false"
-          aria-controls="collapsePages"
-        >
-          <div class="sb-nav-link-icon">
-            <i class="fas fa-cart-arrow-down"></i>
-          </div>
+        <!-- Submenú Reserva -->
+        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
+           data-bs-target="#collapsePages" aria-expanded="false"
+           aria-controls="collapsePages">
+          <div class="sb-nav-link-icon"><i class="fas fa-cart-arrow-down"></i></div>
           Reserva
-          <div class="sb-sidenav-collapse-arrow">
-            <i class="fas fa-angle-down"></i>
-          </div>
+          <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
         </a>
-        <div
-          class="collapse"
-          id="collapsePages"
-          aria-labelledby="headingTwo"
-          data-bs-parent="#sidenavAccordion"
-        >
+        <div class="collapse" id="collapsePages"
+             aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
           <nav class="sb-sidenav-menu-nested nav">
-            <a routerLink="mant/reserva" class="nav-link" href="#">
-              Generar Reserva
-            </a>
-            <a routerLink="mant/pago" class="nav-link" href="#">
-              Detalle Reservas
-            </a>
+            <a routerLink="mant/reserva" class="nav-link">Generar Reserva</a>
+            <a routerLink="mant/pago" class="nav-link">Detalle Reservas</a>
           </nav>
         </div>
 
-        <ng-container *ngIf="usuario.tipoUsuario !== 'Empleado'">
-          <a
-            class="nav-link collapsed"
-            href="#"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseLayouts"
-            aria-expanded="false"
-            aria-controls="collapseLayouts"
-          >
+        <!-- ⚡ CAMBIO AQUÍ: Solo se muestra si el rol es Administrador -->
+        <ng-container *ngIf="usuario.rol === 'Administrador'">
+          <a class="nav-link collapsed" href="#" data-bs-toggle="collapse"
+             data-bs-target="#collapseLayouts" aria-expanded="false"
+             aria-controls="collapseLayouts">
             <div class="sb-nav-link-icon"><i class="fas fa-tools"></i></div>
             Mantenimiento
-            <div class="sb-sidenav-collapse-arrow">
-              <i class="fas fa-angle-down"></i>
-            </div>
+            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
           </a>
-        
-          <div
-            class="collapse"
-            id="collapseLayouts"
-            aria-labelledby="headingOne"
-            data-bs-parent="#sidenavAccordion"
-          >
+          <div class="collapse" id="collapseLayouts"
+               aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
             <nav class="sb-sidenav-menu-nested nav">
-              <a routerLink="mant/usuario" class="nav-link" href="#">Usuarios</a>
-              <a routerLink="mant/destino" class="nav-link" href="#">Destinos</a>
-              <!-- <a routerLink="mant/proveedor" class="nav-link" href="#">Proveedores</a> -->
+              <a routerLink="mant/usuario" class="nav-link">Usuarios</a>
+              <a routerLink="mant/destino" class="nav-link">Destinos</a>
+              <!-- <a routerLink="mant/proveedor" class="nav-link">Proveedores</a> -->
             </nav>
           </div>
-        </ng-container> 
-       
-        
+        </ng-container>
+
         <div class="sb-sidenav-menu-heading">Cerrar Sesión</div>
         <a class="nav-link" (click)="logout()">
-          <button style="background-color: transparent; border: 0px; color: peru;"> 
-            <i class="fas fa-sign-out-alt"></i> 
-            Salir
-          </button>  
+          <button style="background-color: transparent; border: 0; color: peru;">
+            <i class="fas fa-sign-out-alt"></i> Salir
+          </button>
         </a>
       </div>
     </div>
-    <div class="sb-sidenav-footer">
-      <i class="fas fa-user"></i>
-      <div class="small"></div>
-      {{ usuario.nombre }}
-      <div class="small"></div>
-      {{ usuario.tipoUsuario }}
+
+    <!-- ⚡ FOOTER MEJORADO: muestra nombre completo y rol -->
+    <div class="sb-sidenav-footer d-flex align-items-center px-3 py-2">
+      <i class="fas fa-user-circle fa-lg me-2 text-light"></i>
+      <div>
+        <div class="small fw-semibold text-light">{{ usuario.nombre }} {{ usuario.apellido }}</div>
+        <div class="small text-white-50">{{ usuario.rol }}</div>
+      </div>
     </div>
   </nav>
 </div>
-
