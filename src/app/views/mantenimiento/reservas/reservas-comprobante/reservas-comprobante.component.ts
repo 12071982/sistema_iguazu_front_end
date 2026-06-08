@@ -1,74 +1,63 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core'; // 👈 Añadido OnChanges y SimpleChanges
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { ClienteModel } from 'src/app/models/clientes.model';
 import { PaqueteModel } from 'src/app/models/paquete.model';
 import { ReservasModel } from 'src/app/models/reservas.model';
 import { ClientesService } from 'src/app/service/clientes.service';
 import { PaqueteService } from 'src/app/service/paquete.service';
-import { ReservasService } from 'src/app/service/reservas.service';
 import { DestinoService } from 'src/app/service/destino.service';
 import { forkJoin } from 'rxjs';
-import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-reservas-comprobante',
   templateUrl: './reservas-comprobante.component.html',
   styleUrls: ['./reservas-comprobante.component.css'],
 })
-export class ReservasComprobanteComponent implements OnInit, OnChanges { // 👈 Implementamos OnChanges
+export class ReservasComprobanteComponent implements OnInit, OnChanges {
   @Input() reserva: ReservasModel = new ReservasModel();
   @Input() acompanantes: ClienteModel[] = [];
   @Input() pagarCon: number = 0;
   @Input() vuelto: number = 0;
+  @Input() pdfBase64: string = ''; // <-- Recibe el PDF desde el padre
 
   cliente: ClienteModel = new ClienteModel();
   paquete?: PaqueteModel;
-  total: number = 0.0;
   nroOperacion: string = '';
   destino_nombreTipoMap: Map<number, string> = new Map();
   destino_monedaTipoMap: Map<number, string> = new Map();
 
-  // Control de carga
   cargando: boolean = true;
   error: boolean = false;
 
   constructor(
     private _clienteservice: ClientesService,
     private _paqueteService: PaqueteService,
-    private _reservasService: ReservasService,
     private _destinoService: DestinoService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.nroOperacion = `00${this.reserva.iD_Reserva}`;
+    this.actualizarNroOperacion();
     this.loadData();
   }
 
-  // ⚡ Captura los cambios de los @Input() en tiempo real cuando el padre los envía
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['pagarCon'] && !changes['pagarCon'].firstChange) {
-      console.log('🔄 Actualización - Pagar con recibido:', changes['pagarCon'].currentValue);
-    }
-    if (changes['vuelto'] && !changes['vuelto'].firstChange) {
-      console.log('🔄 Actualización - Vuelto recibido:', changes['vuelto'].currentValue);
-    }
-    
-    // Si la reserva cambia (por ejemplo, al abrir un nuevo comprobante), refrescamos los datos e ID
     if (changes['reserva'] && !changes['reserva'].firstChange) {
-      this.nroOperacion = `00${this.reserva.iD_Reserva}`;
+      this.actualizarNroOperacion();
       this.loadData();
     }
+  }
+
+  private actualizarNroOperacion(): void {
+    this.nroOperacion = this.reserva.numero_Transaccion ||
+      (this.reserva.iD_Reserva ? `00${this.reserva.iD_Reserva}` : '');
   }
 
   loadData() {
     this.cargando = true;
     this.error = false;
-
-    // Validación preventiva por si la reserva aún no se ha cargado correctamente
     if (!this.reserva || !this.reserva.iD_Cliente) {
       this.cargando = false;
       return;
     }
-
     forkJoin([
       this._clienteservice.getById(this.reserva.iD_Cliente),
       this._paqueteService.getAll(),
@@ -76,27 +65,12 @@ export class ReservasComprobanteComponent implements OnInit, OnChanges { // 👈
     ]).subscribe(
       ([clienteData, paquetesData, destinosData]) => {
         this.cliente = clienteData;
-        this.paquete = paquetesData.find(
-          (p) => p.iD_Paquete === this.reserva.iD_Paquete
-        );
-
-        if (!this.paquete) {
-          console.error('Paquete no encontrado con ID:', this.reserva.iD_Paquete);
-        }
-
+        this.paquete = paquetesData.find(p => p.iD_Paquete === this.reserva.iD_Paquete);
         this.initDestinoMaps(destinosData);
         this.cargando = false;
-
-        // Monitoreo de flujo de datos consolidado
-        console.log('=== DATOS CARGADOS EN BOLETA ===');
-        console.log('Cliente Titular:', this.cliente);
-        console.log('Paquete Seleccionado:', this.paquete);
-        console.log('Acompañantes:', this.acompanantes);
-        console.log('Monto Entregado (pagarCon):', this.pagarCon);
-        console.log('Vuelto Calculado:', this.vuelto);
       },
       (err) => {
-        console.error('Error al cargar datos del comprobante:', err);
+        console.error(err);
         this.cargando = false;
         this.error = true;
       }
@@ -104,7 +78,7 @@ export class ReservasComprobanteComponent implements OnInit, OnChanges { // 👈
   }
 
   initDestinoMaps(destinos: any[]) {
-    this.destino_nombreTipoMap.clear(); // Limpiamos mapas viejos para evitar duplicados en memoria
+    this.destino_nombreTipoMap.clear();
     this.destino_monedaTipoMap.clear();
     for (let destino of destinos) {
       this.destino_nombreTipoMap.set(destino.iD_Destino, destino.nombre);
@@ -117,22 +91,8 @@ export class ReservasComprobanteComponent implements OnInit, OnChanges { // 👈
   }
 
   getMonedaNombre(iD_Destino?: number): string {
-    if (iD_Destino !== undefined) {
-      return this.destino_monedaTipoMap.get(iD_Destino) || '';
-    }
+    if (iD_Destino !== undefined) return this.destino_monedaTipoMap.get(iD_Destino) || '';
     return '';
-  }
-
-  getPrecioPersona(): number {
-    if (!this.reserva.numero_Personas || this.reserva.numero_Personas === 0) {
-      return this.reserva.precio_Total || 0;
-    }
-    return (this.reserva.precio_Total || 0) / this.reserva.numero_Personas;
-  }
-
-  getAllPasajeros(): ClienteModel[] {
-    const todos = [this.cliente, ...this.acompanantes];
-    return todos.filter((p) => p && p.iD_Cliente);
   }
 
   PrintElem() {
@@ -141,30 +101,58 @@ export class ReservasComprobanteComponent implements OnInit, OnChanges { // 👈
       alert("No se encontró el elemento con id 'app2'");
       return;
     }
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (!printWindow) {
+      alert('Por favor, permita ventanas emergentes para imprimir');
+      return;
+    }
+    const htmlContent = elem.outerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Comprobante de Reserva</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; background: white; display: flex; justify-content: center; padding: 20px; }
+            #app2 { width: 80mm; margin: 0 auto; background: white; }
+            @media print {
+              body { padding: 0; }
+              button, .btn { display: none; }
+            }
+          </style>
+        </head>
+        <body>${htmlContent}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.onafterprint = () => printWindow.close();
+  }
 
-    const mywindow: any = window.open('', 'PRINT', 'height=1000,width=800');
-
-    mywindow.document.write(
-      `<html><head><title>${document.title}</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        thead { background-color: #f5f5f5; }
-        img { max-width: 100%; }
-      </style>
-      </head><body>`
-    );
-
-    html2canvas(elem, { allowTaint: true, useCORS: true }).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png');
-      mywindow.document.write(`<img src="${imgData}" style="width:100%;" />`);
-      mywindow.document.write('</body></html>');
-      mywindow.document.close();
-      mywindow.focus();
-      setTimeout(() => {
-        mywindow.print();
-      }, 500);
-    });
+  // Nuevo método para descargar el PDF recibido desde el backend
+  descargarPDF() {
+    if (!this.pdfBase64) {
+      alert('No hay PDF disponible para descargar');
+      return;
+    }
+    try {
+      const byteCharacters = atob(this.pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `comprobante_${this.nroOperacion}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+      alert('Error al descargar el PDF');
+    }
   }
 }

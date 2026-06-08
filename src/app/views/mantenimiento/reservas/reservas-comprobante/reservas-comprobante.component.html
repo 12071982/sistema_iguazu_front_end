@@ -139,10 +139,13 @@
   </div>
 </div>
 
-<!-- Botón de impresión -->
+<!-- Botones al final -->
 <div style="text-align: center; padding: 20px 0;">
-  <button (click)="PrintElem()" class="btn btn-success btn-lg" style="font-size: 14px; font-family: sans-serif; padding: 10px 24px; border-radius: 5px; font-weight: bold; cursor: pointer;">
+  <button (click)="PrintElem()" class="btn btn-success btn-lg" style="margin-right: 10px;">
     <i class="fas fa-print"></i> Imprimir Boleta
+  </button>
+  <button (click)="descargarPDF()" class="btn btn-primary btn-lg">
+    <i class="fas fa-download"></i> Descargar PDF
   </button>
 </div>
 

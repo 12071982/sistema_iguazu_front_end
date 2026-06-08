@@ -1,5 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { const_uri } from '../constantes/const_uri';
@@ -14,6 +13,7 @@ import { PaqueteModel } from '../models/paquete.model';
 export class ReservasService {
 
   url = const_uri.mant_reserva;
+
   constructor(
     private _http: HttpClient,
     private _sesionservice: SesionService
@@ -28,15 +28,21 @@ export class ReservasService {
     return this._http.post<ReservasModel>(this.url, reservas);
   }
 
+  confirmarReserva(reservaData: any): Observable<any> {
+    const endpoint = `${this.url}confirmar`;
+    return this._http.post(endpoint, reservaData);
+  }
+
   update(reservas: ReservasModel): Observable<ReservasModel> {
     return this._http.put<ReservasModel>(this.url, reservas)
   }
 
   updateEstatus(reserva: ReservasModel, cliente: ClienteModel, paquete: PaqueteModel, destino: string, moneda: string): Observable<any> {
+    const endpoint = `${this.url}estatus`;
     const body = {
       iD_Reserva: reserva.iD_Reserva,
       estatus: reserva.estatus,
-      precio_Total:  reserva.precio_Total,
+      precio_Total: reserva.precio_Total,
       correoCliente: cliente.correo,
       nombreCliente: `${cliente.nombre} ${cliente.apellido}`,
       nombrePaquete: paquete.nombre,
@@ -45,14 +51,14 @@ export class ReservasService {
       fechaFin: paquete.fecha_Fin,
       moneda: moneda
     };
-    return this._http.put(`${this.url}estatus`, body);
+    return this._http.put(endpoint, body);
   }
 
   delete(id: number): Observable<number> {
-    return this._http.delete<number>(`${this.url}${id}`);
+    return this._http.delete<number>(`${this.url}/${id}`);
   }
 
-  getById(id:number){
-    return this._http.get<ReservasModel[]>(`${this.url}${id}`);
+  getById(id: number) {
+    return this._http.get<ReservasModel[]>(`${this.url}/${id}`);
   }
 }

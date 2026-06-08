@@ -81,6 +81,11 @@ export class ReservasRegisterComponent implements OnInit {
   pagarConComprobante: number = 0;
   vueltoComprobante: number = 0;
 
+  // Propiedades para el PDF
+  reservaCreadaId: number = 0;
+  numeroTransaccion: string = '';
+  pdfBase64Comprobante: string = '';
+
   constructor(
     private modalService: BsModalService,
     private _sesionSevice: SesionService,
@@ -180,7 +185,6 @@ export class ReservasRegisterComponent implements OnInit {
     this.filtroPaquete = '';
     this.filtro = '';
     this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
-      // ✅ Orden descendente por ID (último registrado primero)
       this.clienteList = data.sort((a, b) => b.iD_Cliente - a.iD_Cliente);
       this.openModal(template);
     });
@@ -197,9 +201,7 @@ export class ReservasRegisterComponent implements OnInit {
   openListAcompanantes(template: TemplateRef<any>) {
     this.filtro = '';
     this._clienteServece.getAll().subscribe((data: ClienteModel[]) => {
-      // ✅ Orden descendente por ID (último registrado primero)
       const clientesOrdenados = data.sort((a, b) => b.iD_Cliente - a.iD_Cliente);
-      // Filtramos para excluir titular y los ya agregados
       this.acompanantesList = clientesOrdenados.filter(
         (c) =>
           c.iD_Cliente !== this.clienteSelect.iD_Cliente &&
@@ -218,9 +220,8 @@ export class ReservasRegisterComponent implements OnInit {
       Swal.fire({ position: 'center', icon: 'warning', title: 'Ya se alcanzó el número máximo de personas', showConfirmButton: false, timer: 1500 });
       return;
     }
-    
-    this.acompanantes.push(cliente);
 
+    this.acompanantes.push(cliente);
     this.acompanantesList = this.acompanantesList.filter(c => c.iD_Cliente !== cliente.iD_Cliente);
 
     if (this.obtenerAcompanantesFaltantes() === 0) {
@@ -342,8 +343,7 @@ export class ReservasRegisterComponent implements OnInit {
     }
 
     this.myForm.get('precio_Total')?.setValue(this.total_price);
-    
-    // ✅ ASIGNAR AUTOMÁTICAMENTE pagar_con con el total y vuelto en 0
+
     this.pagar_con = this.total_price;
     this.vuelto = 0;
   }
@@ -397,76 +397,164 @@ export class ReservasRegisterComponent implements OnInit {
     return `${dia}/${mes}/${anio} ${horaFormato}:${minutos} ${ampm}`;
   }
 
-  realizarReserva(template: TemplateRef<any>) {
-    
+  private descargarDesdeBase64(base64: string, nombreArchivo: string) {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = nombreArchivo;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  async realizarReserva(template: TemplateRef<any>) {
     if (!this.clienteSelect.iD_Cliente || !this.paqueteselect.iD_Paquete) {
-      Swal.fire({ position: 'center', icon: 'warning', title: 'Por favor, seleccione un cliente y un paquete', showConfirmButton: true });
+      Swal.fire({ icon: 'warning', title: 'Seleccione cliente y paquete' });
       return;
     }
 
     if (this.obtenerAcompanantesFaltantes() > 0) {
-      Swal.fire({ position: 'center', icon: 'warning', title: `Debe seleccionar ${this.obtenerAcompanantesFaltantes()} acompañante(s) más`, showConfirmButton: true });
+      Swal.fire({ icon: 'warning', title: `Faltan ${this.obtenerAcompanantesFaltantes()} acompañante(s)` });
       return;
     }
 
     if (!this.pagar_con || this.pagar_con < this.total_price) {
-      Swal.fire({ 
-        position: 'center', 
-        icon: 'error', 
-        title: 'Monto insuficiente', 
-        text: 'El monto con el que paga debe ser mayor o igual al precio total.', 
-        showConfirmButton: true 
-      });
+      Swal.fire({ icon: 'error', title: 'Monto insuficiente' });
       return;
     }
 
-    // EXTRAEMOS LOS VALORES SEGUROS DEL FORMULARIO
+    Swal.fire({ title: 'Procesando reserva...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
     const formValues = this.myForm.value;
     const ahora = new Date();
     const fechaFormateada = this.formatearFechaHora(ahora);
+    const numeroTransaccion = `RES-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    // CONSTRUIMOS EL OBJETO SEGURO, SIN CAMPOS "PAGAR_CON" NI "VUELTO" QUE ALTEREN EL JSON
-    let reservaValida: any = {
-      iD_Reserva: formValues.iD_Reserva || 0,
-      iD_Cliente: this.clienteSelect.iD_Cliente,
-      iD_Paquete: this.paqueteselect.iD_Paquete,
-      fecha_Reserva: fechaFormateada,
-      fecha_Pago: fechaFormateada,
-      numero_Transaccion: '00' + (formValues.iD_Reserva || 0),
-      estatus: 'Pagado',
-      precio_Total: this.total_price,
-      numero_Personas: parseInt(formValues.numero_Personas) || 1,
-      observaciones: formValues.observaciones || '',
-      iD_Pago: formValues.iD_Pago || 0,
-      metodo_Pago: formValues.metodo_Pago || '',
-      monto: formValues.monto || 0,
-      acompanantesIds: this.acompanantes.map((a) => a.iD_Cliente)
+    // Validar que todos los acompañantes tengan ID válido
+    const acompanantesInvalidos = this.acompanantes.filter(a => !a.iD_Cliente || a.iD_Cliente <= 0);
+    if (acompanantesInvalidos.length > 0) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Uno o más acompañantes no tienen un ID válido' });
+      return;
+    }
+
+    const payload = {
+      ID_Cliente: this.clienteSelect.iD_Cliente,
+      ID_Paquete: this.paqueteselect.iD_Paquete,
+      Fecha_Reserva: fechaFormateada,
+      Numero_Personas: parseInt(formValues.numero_Personas) || 1,
+      Precio_Total: this.total_price,
+      Observaciones: formValues.observaciones || '',
+      Metodo_Pago: 'Efectivo',
+      Monto: this.pagar_con,
+      Fecha_Pago: fechaFormateada,
+      Numero_Transaccion: numeroTransaccion,
+      Moneda: this.nombre_moneda || '',
+      DestinoNombre: this.destino_nombreTipoMap.get(this.paqueteselect.iD_Destino) || '',
+      Cliente: {
+        ID_Cliente: this.clienteSelect.iD_Cliente,
+        Nombre: this.clienteSelect.nombre || '',
+        Apellido: this.clienteSelect.apellido || '',
+        Telefono: this.clienteSelect.telefono || '',
+        Correo: this.clienteSelect.correo || '',
+        Pasaporte: this.clienteSelect.pasaporte || '',
+        Nacionalidad: this.clienteSelect.nacionalidad || ''
+      },
+      Acompanantes: this.acompanantes.map(a => ({
+        ID_Cliente: a.iD_Cliente,
+        Nombre: a.nombre || '',
+        Apellido: a.apellido || '',
+        Telefono: a.telefono || '',
+        Correo: a.correo || '',
+        Pasaporte: a.pasaporte || '',
+        Nacionalidad: a.nacionalidad || ''
+      })),
+      Paquete: {
+        ID_Paquete: this.paqueteselect.iD_Paquete,
+        Nombre: this.paqueteselect.nombre || '',
+        Descripcion: this.paqueteselect.descripcion || '',
+        Fecha_Inicio: this.paqueteselect.fecha_Inicio || '',
+        Fecha_Fin: this.paqueteselect.fecha_Fin || '',
+        Precio_Base: Number(this.paqueteselect.precio_Base).toFixed(2),
+        ID_Destino: this.paqueteselect.iD_Destino,
+        Inclusiones: this.paqueteselect.inclusiones || '',
+        Exclusiones: this.paqueteselect.exclusiones || ''
+      }
     };
 
-    console.log("Enviando objeto limpio al servicio:", reservaValida);
+    console.log('Payload enviado:', JSON.stringify(payload, null, 2));
 
-    this._reservasService.create(reservaValida).subscribe(
-      (data: any) => {
-        this.miReserva = data;
-        this.acompanantesComprobante = [...this.acompanantes];
+    this._reservasService.confirmarReserva(payload).subscribe(
+      (response: any) => {
+        if (response.success) {
+          this.pdfBase64Comprobante = response.pdfBase64 || '';
 
-        // ✅ RESPALDAMOS LOS MONTOS PARA LA BOLETA ANTES DE LIMPIAR
-        this.pagarConComprobante = this.pagar_con;
-        this.vueltoComprobante = this.vuelto;
+          Swal.fire({
+            icon: 'success',
+            title: 'Reserva realizada',
+            text: 'La reserva se ha registrado correctamente.',
+            showConfirmButton: true,
+            timer: 2000
+          }).then(() => {
+            if (response.correoEnviado) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Correo enviado',
+                text: 'El comprobante ha sido enviado a su correo electrónico.',
+                showConfirmButton: true,
+                timer: 3000
+              });
+            } else {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Correo no enviado',
+                text: 'No se pudo enviar el correo (el cliente no tiene email registrado o hubo un error).',
+                showConfirmButton: true,
+                timer: 4000
+              });
+            }
+          });
 
-        Swal.fire({ position: 'center', icon: 'success', title: 'Reserva realizada de forma satisfactoria', showConfirmButton: false, timer: 1650 });
+          this.miReserva = {
+            ...new ReservasModel(),
+            iD_Reserva: response.id_Reserva,
+            iD_Cliente: this.clienteSelect.iD_Cliente,
+            iD_Paquete: this.paqueteselect.iD_Paquete,
+            fecha_Reserva: fechaFormateada,
+            numero_Personas: parseInt(formValues.numero_Personas),
+            precio_Total: this.total_price,
+            estatus: 'Pagado',
+            observaciones: formValues.observaciones,
+            numero_Transaccion: numeroTransaccion,
+            iD_Usuario: this.usuario?.iD_Usuario || 0,
+            paqueteIds: [this.paqueteselect.iD_Paquete]
+          };
+          this.acompanantesComprobante = [...this.acompanantes];
+          this.pagarConComprobante = this.pagar_con;
+          this.vueltoComprobante = this.vuelto;
 
-        // Ahora sí podemos limpiar con total seguridad, la boleta ya tiene su copia guardada
-        this.limpiarTablas();
-
-        setTimeout(() => {
-          this.tituloModal = 'COMPROBANTE DE RESERVA';
-          this.openModal(template);
-        }, 1800);
+          this.limpiarTablas();
+          setTimeout(() => {
+            this.tituloModal = 'COMPROBANTE DE RESERVA';
+            this.openModal(template);
+          }, 2000);
+        } else {
+          throw new Error(response.mensaje || 'Error al crear reserva');
+        }
       },
-      (err) => {
-        console.error('Error al crear reserva:', err);
-        Swal.fire({ position: 'center', icon: 'error', title: 'Ocurrió un error al crear la reserva. Revisa la consola.', showConfirmButton: true });
+      (error) => {
+        console.error(error);
+        let mensajeError = 'Ocurrió un error al procesar la reserva';
+        if (error.error?.errores) {
+          mensajeError = 'Errores de validación:\n' + JSON.stringify(error.error.errores, null, 2);
+        } else if (error.error?.mensaje) {
+          mensajeError = error.error.mensaje;
+        }
+        Swal.fire({ icon: 'error', title: 'Error', text: mensajeError });
       }
     );
   }
