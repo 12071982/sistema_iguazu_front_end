@@ -4,8 +4,8 @@
 
 export const environment = {
   production: false,
-  // uri_back_end:"https://iguazu.bsite.net/api/"
-  uri_back_end:"https://localhost:7047/api/"
+  uri_back_end:"https://iguazu.bsite.net/api/"
+  // uri_back_end:"https://localhost:7047/api/"
 };
 
 /*
