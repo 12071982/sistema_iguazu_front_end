@@ -6,7 +6,7 @@ import { TemporadaModel } from '../models/temporada.model';
 
 @Injectable({ providedIn: 'root' })
 export class TemporadaService {
-  url = const_uri.mant_temporada; // Ajusta según tu constante, ejemplo: 'https://localhost:7047/api/Temporada'
+  url = const_uri.mant_temporada;
 
   constructor(private _http: HttpClient) {}
 

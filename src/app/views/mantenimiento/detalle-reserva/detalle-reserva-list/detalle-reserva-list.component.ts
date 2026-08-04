@@ -197,14 +197,20 @@ export class detalleReservaListComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  private parseYyyyMmDdLocal(str: string): Date | null {
+    if (!str) return null;
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d); // constructor local, sin UTC
+  }
+
   /**
    * Valida que ambas fechas estén seleccionadas y que inicio <= fin
    */
   fechasValidas(): boolean {
     if (!this.fechaInicio || !this.fechaFin) return false;
-    const start = new Date(this.fechaInicio);
-    const end = new Date(this.fechaFin);
-    return start <= end;
+    const start = this.parseYyyyMmDdLocal(this.fechaInicio);
+    const end = this.parseYyyyMmDdLocal(this.fechaFin);
+    return !!start && !!end && start <= end;
   }
 
   /**
@@ -214,9 +220,9 @@ export class detalleReservaListComponent implements OnInit {
   private filtrarReservasPorRango(): ReservasModel[] {
     if (!this.fechaInicio || !this.fechaFin) return [];
 
-    const startDate = new Date(this.fechaInicio);
+    const startDate = this.parseYyyyMmDdLocal(this.fechaInicio)!;
     startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(this.fechaFin);
+    const endDate = this.parseYyyyMmDdLocal(this.fechaFin)!;
     endDate.setHours(23, 59, 59, 999);
 
     return this.reserva.filter(res => {
