@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { DatePipe } from '@angular/common';
 import { UsuarioModel } from 'src/app/models/usuario.model';
 import { SesionService } from 'src/app/service/sesion.service';
+import { environment } from 'src/environments/environment';
 
 interface VerificaPeRespuesta {
   success: boolean;
@@ -43,8 +44,8 @@ export class ClientesRegisterComponent implements OnInit {
   dniBuscado     = false;
   dniEncontrado: boolean | null = null;
 
-  private readonly TOKEN   = 'vp_live_aada01fa0e4c4fa290b3e042fc612bb8';
-  private readonly API_DNI = '/api/verificape/v2/dni';
+  // private readonly TOKEN   = 'vp_live_aada01fa0e4c4fa290b3e042fc612bb8';
+  private readonly API_DNI = environment.uri_back_end + 'VerificaPe/v2/dni';
   private debounceTimer: any = null;
 
   readonly EDAD_MINIMA = 3;
@@ -102,11 +103,7 @@ export class ClientesRegisterComponent implements OnInit {
   buscarDNI(dni: string): void {
     this.buscandoDNI = true;
 
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.TOKEN}`
-    });
-
-    this.http.get<VerificaPeRespuesta>(`${this.API_DNI}/${dni}`, { headers }).subscribe({
+    this.http.get<VerificaPeRespuesta>(`${this.API_DNI}/${dni}`).subscribe({
       next: (resp) => {
         this.buscandoDNI = false;
         if (!resp.success || !resp.data) {
@@ -114,28 +111,34 @@ export class ClientesRegisterComponent implements OnInit {
           this.dniEncontrado = false;
           return;
         }
-        this.dniBuscado    = true;
+        this.dniBuscado = true;
         this.dniEncontrado = true;
 
+        // Formatear nombres con mayúscula inicial
         const cap = (s: string) => s
           ? s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
           : '';
 
         this.myForm.patchValue({
-          nombre:           cap(resp.data.names),
-          apellido:         [resp.data.paternalSurname, resp.data.maternalSurname].filter(Boolean).map(cap).join(' '),
+          nombre: cap(resp.data.names),
+          apellido: [resp.data.paternalSurname, resp.data.maternalSurname]
+            .filter(Boolean).map(cap).join(' '),
           fecha_Nacimiento: this.formatDate(resp.data.birthDate),
-          nacionalidad:     'Peruana'
+          nacionalidad: 'Peruana'
         });
 
+        // Marcar los campos como tocados para que se muestren los iconos y validaciones
         ['nombre', 'apellido', 'fecha_Nacimiento'].forEach(c =>
           this.myForm.get(c)?.markAsTouched()
         );
       },
-      error: () => {
-        this.buscandoDNI   = false;
-        this.dniBuscado    = true;
+      error: (err) => {
+        this.buscandoDNI = false;
+        this.dniBuscado = true;
         this.dniEncontrado = false;
+
+        console.error('🔥 ERROR REAL DE LA API:', err);
+        console.log('URL que se está llamando:', `${this.API_DNI}/${dni}`);
       }
     });
   }
