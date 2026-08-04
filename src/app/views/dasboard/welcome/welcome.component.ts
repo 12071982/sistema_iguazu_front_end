@@ -161,15 +161,23 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
+  private parseYyyyMmDdLocal(str: string): Date | null {
+    if (!str) return null;
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   fechasValidas(): boolean {
     if (!this.fechaInicio || !this.fechaFin) return false;
-    return new Date(this.fechaInicio) <= new Date(this.fechaFin);
+    const start = this.parseYyyyMmDdLocal(this.fechaInicio);
+    const end = this.parseYyyyMmDdLocal(this.fechaFin);
+    return !!start && !!end && start <= end;
   }
 
   private filtrarPorRango(): ReservasModel[] {
     if (!this.fechaInicio || !this.fechaFin) return this.reservasTodas;
-    const s = new Date(this.fechaInicio); s.setHours(0, 0, 0, 0);
-    const e = new Date(this.fechaFin); e.setHours(23, 59, 59, 999);
+    const s = this.parseYyyyMmDdLocal(this.fechaInicio)!; s.setHours(0, 0, 0, 0);
+    const e = this.parseYyyyMmDdLocal(this.fechaFin)!; e.setHours(23, 59, 59, 999);
     return this.reservasTodas.filter(r => {
       const f = this.parseFecha(r.fecha_Reserva);
       return f && f >= s && f <= e;
